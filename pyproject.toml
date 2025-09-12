@@ -1,14 +1,15 @@
 [tool.poetry]
 name = "jaxcapse"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["marcobonici <bonici.marco@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-flax = "^0.8.5"
+python = "^3.10"
+flax = "^0.10.0"
 jax = "^0.4.30"
+jaxace = "^0.1.1"
 
 
 [build-system]
