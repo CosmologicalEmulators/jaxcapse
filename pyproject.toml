@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "jaxcapse"
 version = "0.1.1"
-description = ""
+description = "JAX implementation of the Capse emulator."
 authors = ["marcobonici <bonici.marco@gmail.com>"]
 readme = "README.md"
 
@@ -10,7 +10,6 @@ python = "^3.10"
 flax = "^0.10.0"
 jax = "^0.4.30"
 jaxace = "^0.1.1"
-
 
 [build-system]
 requires = ["poetry-core"]

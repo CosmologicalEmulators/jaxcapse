@@ -65,48 +65,48 @@ class MLP:
     def apply(self, params, x):
         """For backward compatibility - use emulator directly."""
         return self.emulator.model.apply(params, x)
-    
+
     @partial(jax.jit, static_argnums=(0,))
     def get_Cl(self, input_data: jnp.ndarray) -> jnp.ndarray:
         """
         Compute CMB power spectrum Cl values with JIT compilation.
-        
+
         Args:
             input_data: Cosmological parameters as JAX array
-            
+
         Returns:
             Processed Cl values
         """
         # Normalize input
         norm_input = maximin(input_data, self.in_MinMax)
-        
+
         # Run through neural network using jaxace emulator
         norm_output = self.emulator.run_emulator(norm_input)
-        
+
         # Denormalize output
         output = inv_maximin(norm_output, self.out_MinMax)
-        
+
         # Apply postprocessing (assumed to be JAX-compatible)
         processed_output = self.postprocessing(input_data, output)
-        
+
         return processed_output
-    
+
     def get_Cl_batch(self, input_batch: np.ndarray) -> np.ndarray:
         """
         Compute CMB power spectrum Cl values for a batch of inputs using vectorization.
-        
+
         Args:
             input_batch: Array of cosmological parameters, shape (n_samples, n_params)
-            
+
         Returns:
             Array of processed Cl values, shape (n_samples, n_cls)
         """
         # Convert to JAX array
         input_jax = jnp.asarray(input_batch)
-        
+
         # Vectorize the entire get_Cl function (already JIT-compiled)
         vmap_get_Cl = jax.vmap(self.get_Cl)
-        
+
         # Process all inputs at once
         return vmap_get_Cl(input_jax)
 
@@ -136,10 +136,10 @@ def load_emulator(folder_path: str) -> MLP:
 
     Args:
         folder_path: Path to the emulator folder containing:
-            - configuration.json: Neural network specification
+            - nn_setup.json: Neural network specification
             - weights.npy: Trained weights
-            - inMinMax.npy: Input normalization parameters
-            - outMinMax.npy: Output normalization parameters
+            - inminmax.npy: Input normalization parameters
+            - outminmax.npy: Output normalization parameters
             - postprocessing.py: Postprocessing function
 
     Returns:
@@ -150,11 +150,11 @@ def load_emulator(folder_path: str) -> MLP:
         folder_path += '/'
 
     # Load CAPSE-specific files
-    in_MinMax = jnp.load(os.path.join(folder_path, "inMinMax.npy"))
-    out_MinMax = jnp.load(os.path.join(folder_path, "outMinMax.npy"))
+    in_MinMax = jnp.load(os.path.join(folder_path, "inminmax.npy"))
+    out_MinMax = jnp.load(os.path.join(folder_path, "outminmax.npy"))
 
     # Load neural network configuration
-    config_path = os.path.join(folder_path, 'configuration.json')
+    config_path = os.path.join(folder_path, 'nn_setup.json')
     with open(config_path, 'r') as f:
         nn_dict = json.load(f)
 
