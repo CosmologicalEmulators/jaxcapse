@@ -80,13 +80,10 @@ cd jaxcapse
 pip install -e .
 ```
 
-## Documentation Contents
+## Documentation
 
-- **[Getting Started](getting_started/installation.md)**: Installation and quick start guide
-- **[User Guide](user_guide/overview.md)**: Detailed usage instructions
-- **[API Reference](api/jaxcapse.md)**: Complete API documentation
-- **[Examples](examples/basic.md)**: Code examples and tutorials
-- **[Development](development/contributing.md)**: Contributing guidelines
+- **[API Reference](api.md)**: Complete API documentation
+- **[Contributing](contributing.md)**: Contributing guidelines
 
 ## Requirements
 

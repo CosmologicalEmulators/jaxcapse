@@ -30,6 +30,8 @@ jobs:
                       mkdocstrings[python] \
                       mkdocs-material-extensions \
                       mike
+          # Install jaxcapse to get version
+          pip install -e .
 
       # 3 — need existing gh-pages branch for mike
       - name: Fetch gh-pages history
