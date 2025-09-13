@@ -693,29 +693,20 @@
   
 
 
-<h1 id="jaxcapse">JaxCapse<a class="headerlink" href="#jaxcapse" title="Permanent link">&para;</a></h1>
-<div align="center">
-
-[![Tests](https://github.com/CosmologicalEmulators/jaxcapse/actions/workflows/tests.yml/badge.svg)](https://github.com/CosmologicalEmulators/jaxcapse/actions/workflows/tests.yml)
-[![codecov](https://codecov.io/gh/CosmologicalEmulators/jaxcapse/branch/main/graph/badge.svg)](https://codecov.io/gh/CosmologicalEmulators/jaxcapse)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-*Fast, differentiable CMB power spectrum emulation in JAX*
-
-</div>
-
+<h1 id="jaxcapse">jaxcapse<a class="headerlink" href="#jaxcapse" title="Permanent link">&para;</a></h1>
+<p><strong>Fast, differentiable CMB power spectrum emulation in JAX</strong></p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>JaxCapse is a JAX implementation of the CAPSE (Cosmological Autoencoder for Power Spectrum Emulation) neural network emulator for computing CMB (Cosmic Microwave Background) power spectra. It provides:</p>
+<p>jaxcapse is a JAX implementation of the <code>Capse.jl</code> (CMB Angular Power Spectrum Emulator) neural network emulator for computing CMB power spectra. It provides:</p>
 <ul>
 <li>⚡ <strong>Fast inference</strong>: Compute CMB power spectra in microseconds</li>
 <li>🎯 <strong>High accuracy</strong>: Sub-percent precision across a wide parameter range</li>
-<li>🔄 <strong>Automatic differentiation</strong>: Compute gradients with respect to cosmological parameters</li>
+<li>🔄 <strong>Automatic differentiation</strong>: Compute gradients/jacobians with respect to cosmological parameters</li>
 <li>🚀 <strong>Batch processing</strong>: Efficiently process multiple parameter sets simultaneously</li>
 <li>🔧 <strong>JAX integration</strong>: Full compatibility with JAX transformations (JIT, vmap, grad)</li>
 </ul>
 <h2 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h2>
 <h3 id="speed">Speed<a class="headerlink" href="#speed" title="Permanent link">&para;</a></h3>
-<p>JaxCapse computes CMB power spectra orders of magnitude faster than traditional Boltzmann solvers:</p>
+<p>jaxcapse computes CMB power spectra orders of magnitude faster than traditional Boltzmann solvers:</p>
 <ul>
 <li>Single evaluation: ~50 μs</li>
 <li>Gradient computation: ~400 μs</li>
@@ -730,7 +721,7 @@
 <li>Gradient-based optimization</li>
 </ul>
 <h3 id="supported-spectra">Supported Spectra<a class="headerlink" href="#supported-spectra" title="Permanent link">&para;</a></h3>
-<p>JaxCapse provides trained emulators for:</p>
+<p>jaxcapse provides trained emulators for:</p>
 <ul>
 <li><strong>TT</strong>: Temperature-Temperature</li>
 <li><strong>EE</strong>: E-mode polarization</li>
@@ -751,7 +742,7 @@
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Compute power spectrum</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">cl_TT</span> <span class="o">=</span> <span class="n">emulator_TT</span><span class="o">.</span><span class="n">get_Cl</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 </span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Compute gradients</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="c1"># Compute jacobians</span>
 </span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 </span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="n">jacobian</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jacfwd</span><span class="p">(</span><span class="n">emulator_TT</span><span class="o">.</span><span class="n">get_Cl</span><span class="p">)(</span><span class="n">params</span><span class="p">)</span>
 </span></code></pre></div>
@@ -776,21 +767,25 @@
 <li>jaxace ≥ 0.1.1</li>
 </ul>
 <h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
-<p>If you use JaxCapse in your research, please cite:</p>
-<div class="language-bibtex highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nc">@software</span><span class="p">{</span><span class="nl">jaxcapse2024</span><span class="p">,</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Bonici, Marco}</span><span class="p">,</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{JaxCapse: JAX implementation of CAPSE emulator}</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2024}</span><span class="p">,</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="na">url</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{https://github.com/CosmologicalEmulators/jaxcapse}</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="p">}</span>
+<p>If you use jaxcapse in your research, please cite:</p>
+<div class="language-bibtex highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nc">@article</span><span class="p">{</span><span class="nl">Bonici2024Capse</span><span class="p">,</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Bonici, Marco and Bianchini, Federico and Ruiz-Zapatero, Jaime}</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="na">journal</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{The Open Journal of Astrophysics}</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="na">doi</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{10.21105/astro.2307.14339}</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="na">year</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{2024}</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="na">month</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{jan 30}</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="na">publisher</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Maynooth Academic Publishing}</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="na">title</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{Capse.jl: efficient and auto-differentiable {CMB} power spectra emulation}</span><span class="p">,</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="na">volume</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{7}</span><span class="p">,</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="p">}</span>
 </span></code></pre></div>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
-<p>JaxCapse is released under the MIT License. See <a href="https://github.com/CosmologicalEmulators/jaxcapse/blob/main/LICENSE">LICENSE</a> for details.</p>
+<p>jaxcapse is released under the MIT License. See <a href="https://github.com/CosmologicalEmulators/jaxcapse/blob/main/LICENSE">LICENSE</a> for details.</p>
 <h2 id="acknowledgments">Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permanent link">&para;</a></h2>
-<p>JaxCapse builds on:</p>
+<p>jaxcapse builds on:</p>
 <ul>
 <li><a href="https://github.com/CosmologicalEmulators/jaxace">jaxace</a>: JAX implementation of AbstractCosmologicalEmulators.jl</li>
-<li><a href="https://github.com/CosmologicalEmulators/Capse.jl">CAPSE</a>: Original Julia implementation</li>
+<li><a href="https://github.com/CosmologicalEmulators/Capse.jl">Capse.jl</a>: Original Julia implementation</li>
 <li><a href="https://github.com/google/jax">JAX</a>: Composable transformations of Python+NumPy programs</li>
 </ul>
 
