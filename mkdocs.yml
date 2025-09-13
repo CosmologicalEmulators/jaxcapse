@@ -1,0 +1,112 @@
+site_name: JaxCapse
+site_description: JAX implementation of the CAPSE CMB power spectrum emulator
+site_author: Marco Bonici
+site_url: https://github.com/CosmologicalEmulators/jaxcapse
+
+repo_name: CosmologicalEmulators/jaxcapse
+repo_url: https://github.com/CosmologicalEmulators/jaxcapse
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mike:
+      canonical_version: stable
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_toc_entry: true
+            heading_level: 2
+            docstring_style: google
+            merge_init_into_class: true
+            separate_signature: true
+            show_signature_annotations: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting_started/installation.md
+      - Quick Start: getting_started/quickstart.md
+      - Tutorial: getting_started/tutorial.md
+  - User Guide:
+      - Overview: user_guide/overview.md
+      - Loading Emulators: user_guide/loading.md
+      - Computing Power Spectra: user_guide/computing.md
+      - Batch Processing: user_guide/batch.md
+      - JAX Features: user_guide/jax_features.md
+  - API Reference:
+      - jaxcapse: api/jaxcapse.md
+      - MLP Class: api/mlp.md
+      - Utilities: api/utils.md
+  - Examples:
+      - Basic Usage: examples/basic.md
+      - Gradients: examples/gradients.md
+      - Batch Processing: examples/batch.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Testing: development/testing.md
+      - Changelog: development/changelog.md
+
+extra:
+  version:
+    provider: mike
+    default: stable
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/CosmologicalEmulators/jaxcapse
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/jaxcapse/

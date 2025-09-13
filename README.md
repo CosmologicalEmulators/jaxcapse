@@ -1,4 +1,5 @@
 # jaxcapse
+[![codecov](https://codecov.io/gh/CosmologicalEmulators/jaxcapse/graph/badge.svg?token=D6VJ14G46U)](https://codecov.io/gh/CosmologicalEmulators/jaxcapse)
 [![arXiv](https://img.shields.io/badge/arXiv-2307.14339-b31b1b.svg)](https://arxiv.org/abs/2307.14339)
 
 Repo containing the jaxcapse emulator.
