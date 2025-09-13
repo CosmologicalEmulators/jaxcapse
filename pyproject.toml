@@ -1,15 +1,48 @@
 [tool.poetry]
 name = "jaxcapse"
-version = "0.1.0"
-description = ""
+version = "0.1.1"
+description = "JAX implementation of the Capse emulator."
 authors = ["marcobonici <bonici.marco@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-flax = "^0.8.5"
+python = "^3.10"
+flax = "^0.10.0"
 jax = "^0.4.30"
+jaxace = "^0.1.1"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4"
+pytest-cov = "^7.0"
+pytest-xdist = "^3.6"
+pytest-benchmark = "^4.0"
+hypothesis = "^6.100"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.6"
+mkdocs-material = "^9.5"
+mkdocstrings = "^0.26"
+mkdocstrings-python = "^1.11"
+mike = "^2.1"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --cov=jaxcapse --cov-report=term-missing --cov-report=xml --cov-report=html"
+
+[tool.coverage.run]
+source = ["jaxcapse"]
+omit = ["tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
 
 [build-system]
 requires = ["poetry-core"]

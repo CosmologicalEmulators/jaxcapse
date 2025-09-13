@@ -1,0 +1,62 @@
+name: Docs
+
+on:
+  push:
+    branches: [main, develop] # run on either branch
+  workflow_dispatch: # manual reruns
+
+permissions:
+  contents: write # needed for pushes to gh-pages
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1 — checkout full history so mike can read existing tags
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # 2 — Python + doc tooling
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install MkDocs + mike
+        run: |
+          python -m pip install --upgrade pip
+          pip install "mkdocs-material>=9,<10" \
+                      mkdocstrings[python] \
+                      mkdocs-material-extensions \
+                      mike
+
+      # 3 — need existing gh-pages branch for mike
+      - name: Fetch gh-pages history
+        run: git fetch origin gh-pages --depth=1 || true
+
+      # 4 — set author so mike can commit
+      - name: Configure git author
+        run: |
+          git config --local user.name  "${{ github.actor }}"
+          git config --local user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+
+      # 5 — branch-specific deploy logic
+      - name: Deploy documentation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          if [[ "$BRANCH" == "develop" ]]; then
+            echo "Deploying dev docs from develop"
+            mike deploy --push --update-aliases dev latest
+          elif [[ "$BRANCH" == "main" ]]; then
+            echo "Deploying stable docs from main"
+            VERSION=$(python -m pip show jaxcapse 2>/dev/null | grep ^Version: | awk '{print $2}')
+            VERSION=${VERSION:-$(date +%Y.%m.%d)}
+            mike deploy --push --update-aliases "$VERSION" stable
+            mike set-default --push stable
+          else
+            echo "Branch $BRANCH is not configured for doc deploy" ; exit 0
+          fi
