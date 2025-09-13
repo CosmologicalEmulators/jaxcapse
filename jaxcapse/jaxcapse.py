@@ -49,23 +49,6 @@ class MLP:
         self.postprocessing = postprocessing
         self.emulator_description = emulator_description
 
-        # For backward compatibility
-        self.NN_params = emulator.parameters
-        self.features = None  # Not directly accessible from FlaxEmulator
-        self.activations = None  # Not directly accessible from FlaxEmulator
-
-    def maximin_input(self, input_data: np.ndarray) -> np.ndarray:
-        """Normalize input using min-max scaling."""
-        return maximin(input_data, self.in_MinMax)
-
-    def inv_maximin_output(self, output: np.ndarray) -> np.ndarray:
-        """Denormalize output using inverse min-max scaling."""
-        return inv_maximin(output, self.out_MinMax)
-
-    def apply(self, params, x):
-        """For backward compatibility - use emulator directly."""
-        return self.emulator.model.apply(params, x)
-
     @partial(jax.jit, static_argnums=(0,))
     def get_Cl(self, input_data: jnp.ndarray) -> jnp.ndarray:
         """
