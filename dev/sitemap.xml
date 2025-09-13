@@ -1,75 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/api/jaxcapse/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/api/jaxcapse/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/api/mlp/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/api/mlp/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/api/utils/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/api/utils/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/development/changelog/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/development/changelog/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/development/contributing/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/development/contributing/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/development/testing/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/development/testing/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/examples/basic/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/examples/basic/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/examples/batch/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/examples/batch/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/examples/gradients/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/examples/gradients/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/getting_started/installation/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/getting_started/installation/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/getting_started/quickstart/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/getting_started/quickstart/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/getting_started/tutorial/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/getting_started/tutorial/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/user_guide/batch/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/user_guide/batch/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/user_guide/computing/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/user_guide/computing/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/user_guide/jax_features/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/user_guide/jax_features/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/user_guide/loading/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/user_guide/loading/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
     <url>
-         <loc>https://github.com/CosmologicalEmulators/jaxcapse/stable/user_guide/overview/</loc>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/user_guide/overview/</loc>
          <lastmod>2025-09-13</lastmod>
     </url>
 </urlset>
