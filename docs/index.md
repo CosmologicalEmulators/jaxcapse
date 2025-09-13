@@ -1,29 +1,21 @@
-# JaxCapse
+# jaxcapse
 
-<div align="center">
-
-[![Tests](https://github.com/CosmologicalEmulators/jaxcapse/actions/workflows/tests.yml/badge.svg)](https://github.com/CosmologicalEmulators/jaxcapse/actions/workflows/tests.yml)
-[![codecov](https://codecov.io/gh/CosmologicalEmulators/jaxcapse/branch/main/graph/badge.svg)](https://codecov.io/gh/CosmologicalEmulators/jaxcapse)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
-*Fast, differentiable CMB power spectrum emulation in JAX*
-
-</div>
+**Fast, differentiable CMB power spectrum emulation in JAX**
 
 ## Overview
 
-JaxCapse is a JAX implementation of the CAPSE (Cosmological Autoencoder for Power Spectrum Emulation) neural network emulator for computing CMB (Cosmic Microwave Background) power spectra. It provides:
+jaxcapse is a JAX implementation of the `Capse.jl` (CMB Angular Power Spectrum Emulator) neural network emulator for computing CMB power spectra. It provides:
 
 - ⚡ **Fast inference**: Compute CMB power spectra in microseconds
 - 🎯 **High accuracy**: Sub-percent precision across a wide parameter range
-- 🔄 **Automatic differentiation**: Compute gradients with respect to cosmological parameters
+- 🔄 **Automatic differentiation**: Compute gradients/jacobians with respect to cosmological parameters
 - 🚀 **Batch processing**: Efficiently process multiple parameter sets simultaneously
 - 🔧 **JAX integration**: Full compatibility with JAX transformations (JIT, vmap, grad)
 
 ## Features
 
 ### Speed
-JaxCapse computes CMB power spectra orders of magnitude faster than traditional Boltzmann solvers:
+jaxcapse computes CMB power spectra orders of magnitude faster than traditional Boltzmann solvers:
 
 - Single evaluation: ~50 μs
 - Gradient computation: ~400 μs
@@ -38,7 +30,7 @@ Leverage JAX's automatic differentiation for:
 - Gradient-based optimization
 
 ### Supported Spectra
-JaxCapse provides trained emulators for:
+jaxcapse provides trained emulators for:
 
 - **TT**: Temperature-Temperature
 - **EE**: E-mode polarization
@@ -61,7 +53,7 @@ params = jnp.array([3.1, 0.96, 67.0, 0.022, 0.12, 0.055])
 # Compute power spectrum
 cl_TT = emulator_TT.get_Cl(params)
 
-# Compute gradients
+# Compute jacobians
 import jax
 jacobian = jax.jacfwd(emulator_TT.get_Cl)(params)
 ```
@@ -94,25 +86,29 @@ pip install -e .
 
 ## Citation
 
-If you use JaxCapse in your research, please cite:
+If you use jaxcapse in your research, please cite:
 
 ```bibtex
-@software{jaxcapse2024,
-  author = {Bonici, Marco},
-  title = {JaxCapse: JAX implementation of CAPSE emulator},
-  year = {2024},
-  url = {https://github.com/CosmologicalEmulators/jaxcapse}
+@article{Bonici2024Capse,
+	author = {Bonici, Marco and Bianchini, Federico and Ruiz-Zapatero, Jaime},
+	journal = {The Open Journal of Astrophysics},
+	doi = {10.21105/astro.2307.14339},
+	year = {2024},
+	month = {jan 30},
+	publisher = {Maynooth Academic Publishing},
+	title = {Capse.jl: efficient and auto-differentiable {CMB} power spectra emulation},
+	volume = {7},
 }
 ```
 
 ## License
 
-JaxCapse is released under the MIT License. See [LICENSE](https://github.com/CosmologicalEmulators/jaxcapse/blob/main/LICENSE) for details.
+jaxcapse is released under the MIT License. See [LICENSE](https://github.com/CosmologicalEmulators/jaxcapse/blob/main/LICENSE) for details.
 
 ## Acknowledgments
 
-JaxCapse builds on:
+jaxcapse builds on:
 
 - [jaxace](https://github.com/CosmologicalEmulators/jaxace): JAX implementation of AbstractCosmologicalEmulators.jl
-- [CAPSE](https://github.com/CosmologicalEmulators/Capse.jl): Original Julia implementation
+- [Capse.jl](https://github.com/CosmologicalEmulators/Capse.jl): Original Julia implementation
 - [JAX](https://github.com/google/jax): Composable transformations of Python+NumPy programs
