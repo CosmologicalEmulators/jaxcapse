@@ -408,7 +408,7 @@ def get_fetcher(zenodo_url: str = None,
     if emulator_types is None:
         emulator_types = ["TT", "TE", "EE", "PP"]
 
-    if _default_fetcher is None or any([cache_dir, zenodo_url, emulator_types]):
+    if _default_fetcher is None:
         _default_fetcher = EmulatorDataFetcher(zenodo_url, emulator_types, cache_dir)
     return _default_fetcher
 
