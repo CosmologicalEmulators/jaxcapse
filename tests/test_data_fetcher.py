@@ -151,10 +151,10 @@ class TestEmulatorConfigs(unittest.TestCase):
 
         # Check structure
         self.assertIsInstance(configs, dict)
-        self.assertIn("class_mnuw0wacdm", configs)
+        self.assertIn("camb_lcdm", configs)
 
         # Check config contents
-        config = configs["class_mnuw0wacdm"]
+        config = configs["camb_lcdm"]
         self.assertIn("zenodo_url", config)
         self.assertIn("emulator_types", config)
         self.assertIn("description", config)
@@ -167,9 +167,9 @@ class TestEmulatorConfigs(unittest.TestCase):
         self.assertIn("trained_emulators", dir(jaxcapse))
         self.assertIsInstance(jaxcapse.trained_emulators, dict)
 
-        # Should have class_mnuw0wacdm with None values (auto-download disabled)
-        self.assertIn("class_mnuw0wacdm", jaxcapse.trained_emulators)
-        emulators = jaxcapse.trained_emulators["class_mnuw0wacdm"]
+        # Should have camb_lcdm with None values (auto-download disabled)
+        self.assertIn("camb_lcdm", jaxcapse.trained_emulators)
+        emulators = jaxcapse.trained_emulators["camb_lcdm"]
         self.assertIn("TT", emulators)
         self.assertIn("EE", emulators)
         self.assertIn("TE", emulators)
@@ -221,8 +221,8 @@ class TestJacobianComputation(unittest.TestCase):
         cls.jaxcapse = jaxcapse
 
         # Try to get the TT emulator
-        if "class_mnuw0wacdm" in jaxcapse.trained_emulators:
-            cls.emulator_TT = jaxcapse.trained_emulators["class_mnuw0wacdm"]["TT"]
+        if "camb_lcdm" in jaxcapse.trained_emulators:
+            cls.emulator_TT = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
         else:
             cls.emulator_TT = None
 
