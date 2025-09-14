@@ -257,11 +257,14 @@ class TestCacheOperations(unittest.TestCase):
 
     def test_list_cached(self):
         """Test listing cached emulators."""
-        # Ensure data is downloaded first
-        if not self.fetcher.emulators_dir.exists():
-            self.fetcher.download_and_extract(show_progress=False)
-
+        # Check if ALL emulators are present, not just if directory exists
         cached = self.fetcher.list_cached()
+
+        # If any emulator is missing, re-download
+        if set(cached) != set(self.emulator_types):
+            self.fetcher.download_and_extract(show_progress=False)
+            cached = self.fetcher.list_cached()
+
         self.assertEqual(set(cached), set(self.emulator_types))
 
     def test_list_available(self):
