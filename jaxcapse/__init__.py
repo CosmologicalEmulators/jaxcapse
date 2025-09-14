@@ -36,10 +36,10 @@ trained_emulators = {}
 # Define available emulator configurations
 # This can be easily extended with new models in the future
 EMULATOR_CONFIGS = {
-    "class_mnuw0wacdm": {
+    "camb_lcdm": {
         "zenodo_url": "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1",
         "emulator_types": ["TT", "TE", "EE", "PP"],
-        "description": "CLASS with massive neutrinos and w0-wa CDM"
+        "description": "CAMB for the LCDM model"
     }
     # Future models can be added here:
     # "class_lcdm": {
