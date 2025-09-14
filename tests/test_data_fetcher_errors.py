@@ -163,26 +163,20 @@ class TestErrorScenarios(unittest.TestCase):
             zenodo_url=self.zenodo_url,
             emulator_types=self.emulator_types,
             cache_dir=self.test_cache,
-            expected_checksum="wrong_checksum"
+            expected_checksum="0000000000000000000000000000000000000000000000000000000000000000"
         )
 
-        # Create a dummy file
-        fetcher.tar_path.parent.mkdir(parents=True, exist_ok=True)
-        fetcher.tar_path.write_bytes(b"dummy content")
+        # Mock the download to create a dummy file
+        def mock_download_func(url, path, show_progress=False):
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(b"dummy content for testing")
+            return True
 
-        # Verification should fail
-        result = fetcher._verify_checksum(fetcher.tar_path, "wrong_checksum")
-        self.assertFalse(result)
-
-        # But for the full flow, mock the download part
-        with patch.object(fetcher, '_download_file') as mock_download:
-            mock_download.return_value = True
-            # Create the file again for the test
-            fetcher.tar_path.write_bytes(b"dummy content")
-
-            # Should fail and remove file
+        with patch.object(fetcher, '_download_file', side_effect=mock_download_func):
+            # Should fail due to bad checksum and remove file
             success = fetcher.download_and_extract(show_progress=False)
             self.assertFalse(success)
+            # File should be removed after checksum failure
             self.assertFalse(fetcher.tar_path.exists())
 
     def test_get_emulator_path_invalid_type(self):
