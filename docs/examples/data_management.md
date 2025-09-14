@@ -6,13 +6,20 @@ The `jaxcapse` package includes a simple data fetcher for downloading and cachin
 
 ### Loading an Emulator
 
-The simplest way to load an emulator is using the convenience function:
+The simplest way to load an emulator is using the pre-loaded emulators:
 
 ```python
 import jaxcapse
 
-# This will automatically download the emulator from Zenodo if not cached
-emulator = jaxcapse.load_emulator("CMB_TT_emulator")
+# Emulators are automatically downloaded and loaded on import
+# Access them from the trained_emulators dictionary
+emulator_TT = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
+emulator_EE = jaxcapse.trained_emulators["camb_lcdm"]["EE"]
+
+# Or load from a specific path
+from jaxcapse import get_emulator_path, load_emulator
+path = get_emulator_path("TT")  # Returns path to TT emulator
+emulator = load_emulator(str(path))
 ```
 
 ### Checking Available Emulators
@@ -40,47 +47,62 @@ print(f"Cached emulators: {cached}")
 from jaxcapse.data_fetcher import EmulatorDataFetcher
 
 # Use a custom cache directory
-fetcher = EmulatorDataFetcher(cache_dir="/path/to/my/cache")
-emulator = fetcher.load_emulator("CMB_TT_emulator")
+fetcher = EmulatorDataFetcher(
+    zenodo_url="https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1",
+    emulator_types=["TT", "TE", "EE", "PP"],
+    cache_dir="/path/to/my/cache",
+    expected_checksum="b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
+)
+
+# Load a specific emulator
+emulator_path = fetcher.get_emulator_path("TT")
 ```
 
-### Updating Zenodo URLs
+### Adding New Emulator Configurations
 
-When you upload new emulator files to Zenodo, you can update the URLs:
+When you upload new emulator files to Zenodo, you can add them to jaxcapse:
 
 ```python
-from jaxcapse.data_fetcher import update_zenodo_url
+from jaxcapse import add_emulator_config
 
-# Update with your actual Zenodo URL
-update_zenodo_url(
-    "CMB_TT_emulator",
-    "https://zenodo.org/record/1234567/files/CMB_TT_emulator.pkl",
-    checksum="abc123..."  # Optional SHA256 checksum
+# Add a new emulator configuration
+add_emulator_config(
+    model_name="my_custom_model",
+    zenodo_url="https://zenodo.org/record/1234567/files/my_emulators.tar.gz",
+    emulator_types=["TT", "EE"],
+    description="My custom LCDM emulators",
+    checksum="abc123...",  # Optional SHA256 checksum
+    auto_load=True  # Automatically download and load
 )
+
+# Access the newly loaded emulators
+emulator_TT = jaxcapse.trained_emulators["my_custom_model"]["TT"]
 ```
 
 ### Manual Download Control
 
 ```python
+from jaxcapse.data_fetcher import get_fetcher
+
 fetcher = get_fetcher()
 
 # Get path without downloading
-path = fetcher.get_emulator_path("CMB_TT_emulator", download_if_missing=False)
+path = fetcher.get_emulator_path("TT", download_if_missing=False)
 if path is None:
     print("Emulator not cached")
 
-# Download without verification
-path = fetcher.get_emulator_path("CMB_TT_emulator", verify_checksum=False)
+# Force download even if cached
+success = fetcher.download_and_extract(force=True, show_progress=True)
 ```
 
 ### Cache Management
 
 ```python
 # Clear specific emulator from cache
-fetcher.clear_cache("CMB_TT_emulator")
+fetcher.clear_cache("TT")  # Clear TT emulator
 
 # Clear all cached files
-fetcher.clear_cache()
+fetcher.clear_cache()  # Clear everything
 ```
 
 ## Example: Computing Cl Jacobians
@@ -91,61 +113,31 @@ Here's a complete example that downloads emulator data and computes Jacobians:
 import jax
 import jax.numpy as jnp
 import jaxcapse
-import matplotlib.pyplot as plt
 
-# Load the CMB TT emulator (downloads from Zenodo if needed)
-emulator = jaxcapse.load_emulator("CMB_TT_emulator")
+# Access the pre-loaded TT emulator
+emulator_TT = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
 
 # Define cosmological parameters
-fiducial_params = {
-    'omega_b': 0.02237,
-    'omega_c': 0.1200,
-    'h': 0.6736,
-    'ln10As': 3.044,
-    'ns': 0.9649,
-    'tau': 0.0544
-}
+# Order: omega_b, omega_c, h, ln10As, ns, tau
+fiducial_params = jnp.array([0.02237, 0.1200, 0.6736, 3.044, 0.9649, 0.0544])
 
-# Function to compute Cl from parameters
-def cl_function(params_array):
-    """Compute CMB power spectrum from parameter array."""
-    omega_b, omega_c, h, ln10As, ns, tau = params_array
+# The emulator has a predict method that works with JAX
+cl_tt = emulator_TT.predict(fiducial_params)
 
-    # Create cosmology object
-    cosmo = jaxcapse.Cosmology(
-        omega_b=omega_b,
-        omega_c=omega_c,
-        h=h,
-        ln10As=ln10As,
-        ns=ns,
-        tau=tau
-    )
+# Compute Jacobian using JAX autodiff
+jacobian_fn = jax.jacobian(emulator_TT.predict)
+jacobian = jacobian_fn(fiducial_params)
 
-    # Run emulator to get Cl
-    ell, cl_tt = emulator.predict(cosmo)
-    return cl_tt
+# jacobian shape: (n_ell, n_params)
+print(f"Cl shape: {cl_tt.shape}")
+print(f"Jacobian shape: {jacobian.shape}")
 
-# Convert dict to array for JAX
-params_array = jnp.array(list(fiducial_params.values()))
-
-# Compute Jacobian
-jacobian_fn = jax.jacobian(cl_function)
-jacobian = jacobian_fn(params_array)
-
-# Plot results
-fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-param_names = list(fiducial_params.keys())
-
-for i, (ax, param) in enumerate(zip(axes.flat, param_names)):
-    ax.plot(ell, jacobian[:, i])
-    ax.set_xlabel(r'$\ell$')
-    ax.set_ylabel(rf'$\partial C_\ell^{{TT}} / \partial {param}$')
-    ax.set_title(f'Jacobian w.r.t. {param}')
-    ax.set_xscale('log')
-
-plt.tight_layout()
-plt.savefig('cl_jacobian.png', dpi=150, bbox_inches='tight')
-plt.show()
+# Example: sensitivity at ell=100
+ell_index = 100
+param_names = ['omega_b', 'omega_c', 'h', 'ln10As', 'ns', 'tau']
+print(f"\nParameter sensitivities at ell={ell_index}:")
+for i, param in enumerate(param_names):
+    print(f"  ∂Cl/∂{param:8s} = {jacobian[ell_index, i]:+.3e}")
 ```
 
 ## Configuration for CI/CD
@@ -158,7 +150,7 @@ For GitHub Actions or other CI systems, you can set up automatic data fetching:
   uses: actions/cache@v3
   with:
     path: ~/.jaxcapse_data
-    key: emulator-data-${{ hashFiles('**/registry.json') }}
+    key: emulator-data-${{ hashFiles('**/pyproject.toml') }}
     restore-keys: |
       emulator-data-
 
@@ -167,9 +159,8 @@ For GitHub Actions or other CI systems, you can set up automatic data fetching:
     python -c "
     from jaxcapse.data_fetcher import get_fetcher
     fetcher = get_fetcher()
-    # Pre-download all emulators needed for docs
-    for emulator in ['CMB_TT_emulator', 'CMB_EE_emulator']:
-        fetcher.get_emulator_path(emulator)
+    # Pre-download all emulators
+    fetcher.download_and_extract(show_progress=True)
     "
 ```
 
@@ -178,31 +169,35 @@ For GitHub Actions or other CI systems, you can set up automatic data fetching:
 1. **Upload your emulator files to Zenodo:**
    - Go to [Zenodo](https://zenodo.org)
    - Create a new upload
-   - Add your `.pkl` files
-   - Publish to get a DOI
+   - Package your emulator files as a tar.gz archive
+   - Publish to get a DOI and download URL
 
-2. **Update the registry in your code:**
+2. **Add your emulators to jaxcapse:**
    ```python
-   from jaxcapse.data_fetcher import update_zenodo_url
+   from jaxcapse import add_emulator_config
 
-   # Use the direct file download URL from Zenodo
-   update_zenodo_url(
-       "my_emulator",
-       "https://zenodo.org/record/XXXXX/files/my_emulator.pkl"
+   # Use the direct tar.gz download URL from Zenodo
+   add_emulator_config(
+       model_name="my_model",
+       zenodo_url="https://zenodo.org/record/XXXXX/files/my_emulators.tar.gz",
+       emulator_types=["TT", "EE", "TE", "PP"],
+       description="My custom emulators"
    )
    ```
 
 3. **Optional: Add checksum for verification:**
    ```bash
    # Generate SHA256 checksum
-   sha256sum my_emulator.pkl
+   sha256sum my_emulators.tar.gz
    ```
 
    Then include it:
    ```python
-   update_zenodo_url(
-       "my_emulator",
-       "https://zenodo.org/record/XXXXX/files/my_emulator.pkl",
-       checksum="abc123def456..."
+   add_emulator_config(
+       model_name="my_model",
+       zenodo_url="https://zenodo.org/record/XXXXX/files/my_emulators.tar.gz",
+       emulator_types=["TT", "EE", "TE", "PP"],
+       checksum="abc123def456...",
+       auto_load=True
    )
    ```
