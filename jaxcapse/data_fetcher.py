@@ -25,7 +25,8 @@ class EmulatorDataFetcher:
     def __init__(self,
                  zenodo_url: str,
                  emulator_types: list,
-                 cache_dir: Optional[Union[str, Path]] = None):
+                 cache_dir: Optional[Union[str, Path]] = None,
+                 expected_checksum: Optional[str] = None):
         """
         Initialize the data fetcher.
 
@@ -38,10 +39,13 @@ class EmulatorDataFetcher:
         cache_dir : str or Path, optional
             Directory to cache downloaded files.
             Defaults to ~/.jaxcapse_data/
+        expected_checksum : str, optional
+            Expected SHA256 checksum of the downloaded file for verification.
         """
         # Store required parameters
         self.zenodo_url = zenodo_url
         self.emulator_types = emulator_types
+        self.expected_checksum = expected_checksum
 
         if cache_dir is None:
             self.cache_dir = Path.home() / ".jaxcapse_data"
@@ -210,6 +214,21 @@ class EmulatorDataFetcher:
                                          show_progress=show_progress)
             if not success:
                 return False
+
+            # Verify checksum if provided
+            if self.expected_checksum:
+                if show_progress:
+                    print("Verifying checksum...")
+                if not self._verify_checksum(self.tar_path, self.expected_checksum):
+                    if show_progress:
+                        print("ERROR: Checksum verification failed!")
+                        print("The downloaded file may be corrupted.")
+                    # Remove the corrupted file
+                    if self.tar_path.exists():
+                        self.tar_path.unlink()
+                    return False
+                elif show_progress:
+                    print("✓ Checksum verified")
 
         # Extract tar file
         if show_progress:
@@ -380,7 +399,8 @@ _default_fetcher = None
 
 def get_fetcher(zenodo_url: str = None,
                 emulator_types: list = None,
-                cache_dir: Optional[Union[str, Path]] = None) -> EmulatorDataFetcher:
+                cache_dir: Optional[Union[str, Path]] = None,
+                expected_checksum: str = None) -> EmulatorDataFetcher:
     """
     Get the default fetcher instance (singleton pattern).
 
@@ -394,6 +414,9 @@ def get_fetcher(zenodo_url: str = None,
         If None, uses default ["TT", "TE", "EE", "PP"].
     cache_dir : str or Path, optional
         Cache directory for the fetcher
+    expected_checksum : str, optional
+        Expected SHA256 checksum of the downloaded file.
+        If None, uses the default checksum for the default URL.
 
     Returns
     -------
@@ -405,11 +428,14 @@ def get_fetcher(zenodo_url: str = None,
     # Use defaults for get_fetcher to maintain backward compatibility
     if zenodo_url is None:
         zenodo_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
+        # Default checksum for the default URL
+        if expected_checksum is None:
+            expected_checksum = "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
     if emulator_types is None:
         emulator_types = ["TT", "TE", "EE", "PP"]
 
     if _default_fetcher is None:
-        _default_fetcher = EmulatorDataFetcher(zenodo_url, emulator_types, cache_dir)
+        _default_fetcher = EmulatorDataFetcher(zenodo_url, emulator_types, cache_dir, expected_checksum)
     return _default_fetcher
 
 

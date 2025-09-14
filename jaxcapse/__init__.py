@@ -39,13 +39,15 @@ EMULATOR_CONFIGS = {
     "camb_lcdm": {
         "zenodo_url": "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1",
         "emulator_types": ["TT", "TE", "EE", "PP"],
-        "description": "CAMB for the LCDM model"
+        "description": "CAMB for the LCDM model",
+        "checksum": "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
     }
     # Future models can be added here:
     # "class_lcdm": {
     #     "zenodo_url": "https://zenodo.org/...",
     #     "emulator_types": ["TT", "EE"],
-    #     "description": "Standard LCDM model"
+    #     "description": "Standard LCDM model",
+    #     "checksum": "..."
     # }
 }
 
@@ -74,7 +76,8 @@ def _load_emulator_set(model_name: str, config: dict, auto_download: bool = True
         # Initialize fetcher for this model
         fetcher = get_fetcher(
             zenodo_url=config["zenodo_url"],
-            emulator_types=config["emulator_types"]
+            emulator_types=config["emulator_types"],
+            expected_checksum=config.get("checksum")
         )
 
         # Download if needed and requested
@@ -111,17 +114,28 @@ if not os.environ.get("JAXCAPSE_NO_AUTO_DOWNLOAD"):
 
     # Load all configured models
     for model_name, config in EMULATOR_CONFIGS.items():
-        trained_emulators[model_name] = _load_emulator_set(
-            model_name,
-            config,
-            auto_download=True
-        )
+        try:
+            trained_emulators[model_name] = _load_emulator_set(
+                model_name,
+                config,
+                auto_download=True
+            )
 
-        # Report loading status
-        loaded = sum(1 for v in trained_emulators[model_name].values() if v is not None)
-        total = len(config["emulator_types"])
-        if loaded > 0:
-            print(f"  {model_name}: Loaded {loaded}/{total} emulators")
+            # Report loading status
+            loaded = sum(1 for v in trained_emulators[model_name].values() if v is not None)
+            total = len(config["emulator_types"])
+            if loaded > 0:
+                print(f"  {model_name}: Loaded {loaded}/{total} emulators")
+            else:
+                warnings.warn(f"Failed to load any emulators for {model_name}")
+
+        except Exception as e:
+            # Ensure import doesn't fail completely
+            warnings.warn(f"Failed to load {model_name} emulators: {e}")
+            # Create empty structure for this model
+            trained_emulators[model_name] = {
+                emu_type: None for emu_type in config.get("emulator_types", [])
+            }
 else:
     # Create empty structure when auto-download is disabled
     for model_name, config in EMULATOR_CONFIGS.items():
@@ -134,6 +148,7 @@ def add_emulator_config(model_name: str,
                         zenodo_url: str,
                         emulator_types: list,
                         description: str = None,
+                        checksum: str = None,
                         auto_load: bool = True):
     """
     Add a new emulator configuration and optionally load it.
@@ -148,6 +163,8 @@ def add_emulator_config(model_name: str,
         List of emulator types (e.g., ["TT", "EE"])
     description : str, optional
         Description of the model
+    checksum : str, optional
+        Expected SHA256 checksum of the downloaded file
     auto_load : bool, optional
         Whether to immediately load the emulators
 
@@ -164,6 +181,10 @@ def add_emulator_config(model_name: str,
         "emulator_types": emulator_types,
         "description": description or f"{model_name} emulators"
     }
+
+    # Add checksum if provided
+    if checksum:
+        EMULATOR_CONFIGS[model_name]["checksum"] = checksum
 
     # Load if requested
     if auto_load:
