@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 # The emulators are automatically loaded when you import jaxcapse
 # Access them via the trained_emulators dictionary
-emulators = jaxcapse.trained_emulators["class_mnuw0wacdm"]
+emulators = jaxcapse.trained_emulators["camb_lcdm"]
 ```
 
 ## Computing Power Spectra
@@ -156,7 +156,7 @@ param_names = [r'$\omega_b$', r'$\omega_c$', r'$h$',
                r'$\ln(10^{10}A_s)$', r'$n_s$', r'$\tau$']
 
 # Get emulators
-emulators = jaxcapse.trained_emulators["class_mnuw0wacdm"]
+emulators = jaxcapse.trained_emulators["camb_lcdm"]
 
 # Compute all spectra
 cl_tt = emulators["TT"].predict(params)

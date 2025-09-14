@@ -57,7 +57,7 @@ def _load_emulator_set(model_name: str, config: dict, auto_download: bool = True
     Parameters
     ----------
     model_name : str
-        Name of the model (e.g., "class_mnuw0wacdm")
+        Name of the model (e.g., "camb_lcdm")
     config : dict
         Configuration dictionary with zenodo_url and emulator_types
     auto_download : bool

@@ -35,7 +35,7 @@ class TestJacobianExample(unittest.TestCase):
             cls.jaxcapse = jaxcapse
 
             # Get the TT emulator
-            cls.emulator_TT = jaxcapse.trained_emulators.get("class_mnuw0wacdm", {}).get("TT")
+            cls.emulator_TT = jaxcapse.trained_emulators.get("camb_lcdm", {}).get("TT")
 
             # Parameter names for interpretation
             cls.param_names = ["ω_b", "ω_c", "h", "ln(10¹⁰As)", "ns", "τ"]

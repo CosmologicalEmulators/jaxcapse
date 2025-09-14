@@ -35,7 +35,7 @@ def generate_cmb_spectra_plot():
         import jax.numpy as jnp
 
         # Get emulators
-        emulators = jaxcapse.trained_emulators["class_mnuw0wacdm"]
+        emulators = jaxcapse.trained_emulators["camb_lcdm"]
 
         # Define fiducial parameters
         params = jnp.array([
@@ -129,7 +129,7 @@ def generate_jacobian_plot():
         import jax.numpy as jnp
 
         # Get TT emulator
-        emulator_tt = jaxcapse.trained_emulators["class_mnuw0wacdm"]["TT"]
+        emulator_tt = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
 
         # Define fiducial parameters
         fiducial = jnp.array([
@@ -205,7 +205,7 @@ def generate_elasticities_plot():
         import jax.numpy as jnp
 
         # Get TT emulator
-        emulator_tt = jaxcapse.trained_emulators["class_mnuw0wacdm"]["TT"]
+        emulator_tt = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
 
         # Define fiducial parameters
         fiducial = jnp.array([

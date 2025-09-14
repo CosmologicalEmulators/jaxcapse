@@ -25,7 +25,7 @@ class TestEmulatorIntegration(unittest.TestCase):
         cls.jax = jax
 
         # Get emulators
-        cls.emulators = jaxcapse.trained_emulators.get("class_mnuw0wacdm", {})
+        cls.emulators = jaxcapse.trained_emulators.get("camb_lcdm", {})
 
     def test_all_emulators_accessible(self):
         """Test that all expected emulators are accessible."""
@@ -254,7 +254,7 @@ class TestEmulatorPerformance(unittest.TestCase):
         cls.time = time
 
         # Get TT emulator for performance tests
-        cls.emulator_TT = jaxcapse.trained_emulators.get("class_mnuw0wacdm", {}).get("TT")
+        cls.emulator_TT = jaxcapse.trained_emulators.get("camb_lcdm", {}).get("TT")
 
     def test_jit_speedup(self):
         """Test that JIT compilation provides speedup."""
