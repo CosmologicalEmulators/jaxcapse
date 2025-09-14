@@ -22,7 +22,7 @@ __all__ = [
     "reload_emulators",
 ]
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # Automatically download and extract emulators when package is imported
 # This ensures data is available when users import jaxcapse
