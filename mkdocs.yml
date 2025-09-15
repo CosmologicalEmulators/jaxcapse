@@ -131,6 +131,9 @@ extra:
 nav:
   - Home:
       - Overview: index.md
+  - Usage Guide:
+      - Usage Examples: usage_examples.md
+      - Data Management: examples/data_management.md
   - API Reference:
       - Core: api.md
   - Contributing: contributing.md

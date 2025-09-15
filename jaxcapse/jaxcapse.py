@@ -93,6 +93,18 @@ class MLP:
         # Process all inputs at once
         return vmap_get_Cl(input_jax)
 
+    def predict(self, input_data: jnp.ndarray) -> jnp.ndarray:
+        """
+        Alias for get_Cl to maintain compatibility with tests and examples.
+
+        Args:
+            input_data: Cosmological parameters as JAX array
+
+        Returns:
+            Processed Cl values
+        """
+        return self.get_Cl(input_data)
+
 def load_preprocessing(root_path: str, filename: str) -> callable:
     """
     Load postprocessing function from Python file.
