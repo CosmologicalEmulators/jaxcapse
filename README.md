@@ -2,7 +2,7 @@
 [![codecov](https://codecov.io/gh/CosmologicalEmulators/jaxcapse/graph/badge.svg?token=D6VJ14G46U)](https://codecov.io/gh/CosmologicalEmulators/jaxcapse)
 [![arXiv](https://img.shields.io/badge/arXiv-2307.14339-b31b1b.svg)](https://arxiv.org/abs/2307.14339)
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://cosmologicalemulators.github.io/jaxcapse/stable/)
-[![Documentation Dev](https://img.shields.io/badge/docs-dev-orange.svg)](https://cosmologicalemulators.github.io/jaxcapse/dev/)
+[![Documentation Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://cosmologicalemulators.github.io/jaxcapse/dev/)
 
 Repo containing the jaxcapse emulator.
 
