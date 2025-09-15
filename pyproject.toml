@@ -15,7 +15,7 @@ jaxace = "^0.1.1"
 pytest = "^8.4"
 pytest-cov = "^7.0"
 pytest-xdist = "^3.6"
-pytest-benchmark = "^4.0"
+pytest-benchmark = "^5.1"
 hypothesis = "^6.100"
 
 [tool.poetry.group.docs.dependencies]
