@@ -15,13 +15,13 @@ jaxace = "^0.1.1"
 pytest = "^8.4"
 pytest-cov = "^7.0"
 pytest-xdist = "^3.6"
-pytest-benchmark = "^4.0"
+pytest-benchmark = "^5.1"
 hypothesis = "^6.100"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6"
 mkdocs-material = "^9.5"
-mkdocstrings = "^0.26"
+mkdocstrings = "^0.30"
 mkdocstrings-python = "^1.11"
 mike = "^2.1"
 
