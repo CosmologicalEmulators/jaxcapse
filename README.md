@@ -6,7 +6,13 @@ Repo containing the jaxcapse emulator.
 
 ## Installation and usage
 
-In order to install `jaxcapse`, clone this repository, enter it, and run
+In order to install `jaxcapse`, you can just run
+
+```bash
+pip install jaxcapse
+```
+
+If you prefer to use the latest version from the repository, you can clone it, enter it, and run
 
 ```bash
 pip install .
