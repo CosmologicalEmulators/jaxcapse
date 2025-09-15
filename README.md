@@ -1,8 +1,14 @@
 # jaxcapse
 [![codecov](https://codecov.io/gh/CosmologicalEmulators/jaxcapse/graph/badge.svg?token=D6VJ14G46U)](https://codecov.io/gh/CosmologicalEmulators/jaxcapse)
 [![arXiv](https://img.shields.io/badge/arXiv-2307.14339-b31b1b.svg)](https://arxiv.org/abs/2307.14339)
+[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://cosmologicalemulators.github.io/jaxcapse/)
 
 Repo containing the jaxcapse emulator.
+
+## Documentation
+
+- **[Stable Documentation](https://cosmologicalemulators.github.io/jaxcapse/stable/)** - Latest release documentation
+- **[Development Documentation](https://cosmologicalemulators.github.io/jaxcapse/dev/)** - Latest development version documentation
 
 ## Installation and usage
 
