@@ -30,18 +30,30 @@ jobs:
                       mkdocstrings[python] \
                       mkdocs-material-extensions \
                       mike
+          # Install jaxcapse to get version
+          pip install -e .
+          # Install matplotlib for plot generation
+          pip install matplotlib
 
-      # 3 — need existing gh-pages branch for mike
+      # 3 — generate documentation plots
+      - name: Generate documentation plots
+        run: |
+          # Create images directory if it doesn't exist
+          mkdir -p docs/images
+          # Generate all plots for documentation
+          python generate_doc_plots.py
+
+      # 4 — need existing gh-pages branch for mike
       - name: Fetch gh-pages history
         run: git fetch origin gh-pages --depth=1 || true
 
-      # 4 — set author so mike can commit
+      # 5 — set author so mike can commit
       - name: Configure git author
         run: |
           git config --local user.name  "${{ github.actor }}"
           git config --local user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
 
-      # 5 — branch-specific deploy logic
+      # 6 — branch-specific deploy logic
       - name: Deploy documentation
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,9 +65,7 @@ jobs:
             mike deploy --push --update-aliases dev latest
           elif [[ "$BRANCH" == "main" ]]; then
             echo "Deploying stable docs from main"
-            VERSION=$(python -m pip show jaxcapse 2>/dev/null | grep ^Version: | awk '{print $2}')
-            VERSION=${VERSION:-$(date +%Y.%m.%d)}
-            mike deploy --push --update-aliases "$VERSION" stable
+            mike deploy --push --update-aliases stable
             mike set-default --push stable
           else
             echo "Branch $BRANCH is not configured for doc deploy" ; exit 0
