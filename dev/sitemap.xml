@@ -2,14 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/</loc>
-         <lastmod>2025-09-13</lastmod>
+         <lastmod>2025-09-15</lastmod>
     </url>
     <url>
          <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/api/</loc>
-         <lastmod>2025-09-13</lastmod>
+         <lastmod>2025-09-15</lastmod>
     </url>
     <url>
          <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/contributing/</loc>
-         <lastmod>2025-09-13</lastmod>
+         <lastmod>2025-09-15</lastmod>
+    </url>
+    <url>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/usage_examples/</loc>
+         <lastmod>2025-09-15</lastmod>
+    </url>
+    <url>
+         <loc>https://cosmologicalemulators.github.io/jaxcapse/dev/examples/data_management/</loc>
+         <lastmod>2025-09-15</lastmod>
     </url>
 </urlset>

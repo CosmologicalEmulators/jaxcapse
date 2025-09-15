@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://cosmologicalemulators.github.io/jaxcapse/dev/api/">
       
       
-        <link rel="prev" href="..">
+        <link rel="prev" href="../examples/data_management/">
       
       
         <link rel="next" href="../contributing/">
@@ -261,6 +261,26 @@
   
   
   
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../usage_examples/" class="md-tabs__link">
+          
+  
+  
+  Usage Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
     
   
   
@@ -424,6 +444,104 @@
       
   
   
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Usage Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Usage Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage_examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Usage Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/data_management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Data Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -445,10 +563,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -461,8 +579,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             API Reference
           </label>
@@ -952,6 +1070,80 @@ for CMB power spectrum computation.</p>
 
 </div>
 
+<div class="doc doc-object doc-function">
+
+
+<h4 id="jaxcapse.jaxcapse.MLP.predict" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">predict</span>
+
+
+<a href="#jaxcapse.jaxcapse.MLP.predict" class="headerlink" title="Permanent link">&para;</a></h4>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">predict</span><span class="p">(</span><span class="n">input_data</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ndarray</span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Alias for get_Cl to maintain compatibility with tests and examples.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>input_data</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-external" title="jax.numpy.ndarray" href="https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.html#jax.numpy.ndarray">ndarray</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Cosmological parameters as JAX array</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-external" title="jax.numpy.ndarray" href="https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.html#jax.numpy.ndarray">ndarray</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Processed Cl values</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
 
 
   </div>
@@ -1176,7 +1368,7 @@ for CMB power spectrum computation.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
+          <a href="../examples/data_management/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Data Management">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1186,7 +1378,7 @@ for CMB power spectrum computation.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Overview
+                Data Management
               </div>
             </div>
           </a>
