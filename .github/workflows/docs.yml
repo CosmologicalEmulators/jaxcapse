@@ -70,11 +70,17 @@ jobs:
 
             if [[ -n "$VERSION" && "$VERSION" != "None" ]]; then
               echo "Detected version: $VERSION"
+              # Remove old 'stable' if it exists (might be a version instead of alias)
+              echo "Cleaning up old stable deployment..."
+              mike delete --push stable 2>/dev/null || true
+
               # Deploy with version number AND stable alias
               mike deploy --push --update-aliases "$VERSION" stable
             else
               echo "Warning: Could not detect version, deploying as 'stable' only"
-              mike deploy --push --update-aliases stable
+              # Remove old stable and redeploy
+              mike delete --push stable 2>/dev/null || true
+              mike deploy --push stable
             fi
 
             mike set-default --push stable
