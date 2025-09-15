@@ -65,7 +65,18 @@ jobs:
             mike deploy --push --update-aliases dev latest
           elif [[ "$BRANCH" == "main" ]]; then
             echo "Deploying stable docs from main"
-            mike deploy --push --update-aliases stable
+            # Get version from installed package
+            VERSION=$(python -c "from importlib.metadata import version; print(version('jaxcapse'))" 2>/dev/null)
+
+            if [[ -n "$VERSION" && "$VERSION" != "None" ]]; then
+              echo "Detected version: $VERSION"
+              # Deploy with version number AND stable alias
+              mike deploy --push --update-aliases "$VERSION" stable
+            else
+              echo "Warning: Could not detect version, deploying as 'stable' only"
+              mike deploy --push --update-aliases stable
+            fi
+
             mike set-default --push stable
           else
             echo "Branch $BRANCH is not configured for doc deploy" ; exit 0
