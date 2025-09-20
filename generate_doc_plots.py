@@ -15,15 +15,26 @@ import matplotlib.pyplot as plt
 # Add jaxcapse to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Set matplotlib style for better looking plots
+# Set matplotlib style to match notebook
+# Try to use LaTeX if available, but don't fail if not
 try:
-    plt.style.use('seaborn-v0_8-darkgrid')
-except:
-    plt.style.use('seaborn-darkgrid')
+    import subprocess
+    subprocess.check_output(['latex', '--version'])
+    plt.rcParams['text.usetex'] = True
+    print("LaTeX detected, using LaTeX rendering for plots")
+except (FileNotFoundError, subprocess.CalledProcessError):
+    plt.rcParams['text.usetex'] = False
+    print("LaTeX not available, using matplotlib's default math rendering")
 
 plt.rcParams['figure.dpi'] = 100
 plt.rcParams['savefig.dpi'] = 150
 plt.rcParams['font.size'] = 11
+plt.rcParams['axes.labelsize'] = 12
+plt.rcParams['xtick.labelsize'] = 10
+plt.rcParams['ytick.labelsize'] = 10
+plt.rcParams['legend.fontsize'] = 10
+plt.rcParams['figure.facecolor'] = 'white'
+plt.rcParams['axes.facecolor'] = 'white'
 
 
 def generate_cmb_spectra_plot():
@@ -74,41 +85,30 @@ def generate_cmb_spectra_plot():
     fig, axes = plt.subplots(2, 2, figsize=(14, 11))
 
     # Plot TT spectrum
-    axes[0, 0].plot(ell, cl_tt,
-                    'b-', linewidth=2)
-    axes[0, 0].set_xlabel(r'Multipole $\ell$', fontsize=12)
-    axes[0, 0].set_ylabel(r'$C_\ell^{TT}$ [$\mu K^2$]', fontsize=12)
-    axes[0, 0].set_title('Temperature Power Spectrum', fontsize=14, fontweight='bold')
-    axes[0, 0].grid(True, alpha=0.3)
+    axes[0, 0].plot(ell, cl_tt, linewidth=2)
+    axes[0, 0].set_xlabel(r'$\ell$')
+    axes[0, 0].set_ylabel(r'$C_\ell^{TT}$')
     axes[0, 0].set_xlim(2, n_ells)
 
     # Plot EE spectrum
-    axes[0, 1].plot(ell, cl_ee,
-                    'r-', linewidth=2)
-    axes[0, 1].set_xlabel(r'Multipole $\ell$', fontsize=12)
-    axes[0, 1].set_ylabel(r'$C_\ell^{EE}$ [$\mu K^2$]', fontsize=12)
-    axes[0, 1].set_title('E-mode Polarization Spectrum', fontsize=14, fontweight='bold')
-    axes[0, 1].grid(True, alpha=0.3)
+    axes[0, 1].plot(ell, cl_ee, linewidth=2)
+    axes[0, 1].set_xlabel(r'$\ell$')
+    axes[0, 1].set_ylabel(r'$C_\ell^{EE}$')
     axes[0, 1].set_xlim(2, n_ells)
 
     # Plot TE spectrum
-    axes[1, 0].plot(ell, cl_te, 'g-', linewidth=2)
-    axes[1, 0].set_xlabel(r'Multipole $\ell$', fontsize=12)
-    axes[1, 0].set_ylabel(r'$C_\ell^{TE}$ [$\mu K^2$]', fontsize=12)
-    axes[1, 0].set_title('Temperature-Polarization Cross Spectrum', fontsize=14, fontweight='bold')
-    axes[1, 0].grid(True, alpha=0.3)
+    axes[1, 0].plot(ell, cl_te, linewidth=2)
+    axes[1, 0].set_xlabel(r'$\ell$')
+    axes[1, 0].set_ylabel(r'$C_\ell^{TE}$')
     axes[1, 0].set_xlim(2, n_ells)
 
     # Plot PP spectrum (lensing potential)
-    axes[1, 1].semilogx(ell, cl_pp, 'm-', linewidth=2)
-    axes[1, 1].set_xlabel(r'Multipole $\ell$', fontsize=12)
-    axes[1, 1].set_ylabel(r'$C_\ell^{\phi\phi}$', fontsize=12)
-    axes[1, 1].set_title('Lensing Potential Spectrum', fontsize=14, fontweight='bold')
-    axes[1, 1].grid(True, alpha=0.3)
+    axes[1, 1].semilogx(ell, cl_pp, linewidth=2)
+    axes[1, 1].set_xlabel(r'$\ell$')
+    axes[1, 1].set_ylabel(r'$C_\ell^{\phi\phi}$')
     axes[1, 1].set_xlim(2, n_ells)
 
-    plt.suptitle('CMB Power Spectra (Fiducial Cosmology)', fontsize=16, fontweight='bold')
-    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+    plt.tight_layout()
 
     # Save figure
     output_dir = Path("docs/images")
@@ -166,7 +166,7 @@ def generate_jacobian_plot():
 
     # Parameter names
     param_names = [r'$\ln(10^{10}A_s)$', r'$n_s$', r'$H_0$',
-                   r'$\omega_b$', r'$\omega_c$', r'$\tau$']
+                   r'$\omega_\mathrm{b}$', r'$\omega_\mathrm{c}$', r'$\tau$']
 
     # Create figure
     fig, axes = plt.subplots(2, 3, figsize=(16, 10))
@@ -174,17 +174,13 @@ def generate_jacobian_plot():
 
     colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
 
-    for i, (ax, name, color) in enumerate(zip(axes, param_names, colors)):
+    for i, (ax, name) in enumerate(zip(axes, param_names)):
         # Plot derivative
-        ax.plot(ell, jacobian[:, i], color=color, linewidth=2.5)
-        ax.set_xlabel(r'Multipole $\ell$', fontsize=12)
-        ax.set_ylabel(f'$\\partial C_\\ell^{{TT}}/\\partial$ {name}', fontsize=12)
-        ax.set_title(f'Sensitivity to {name}', fontsize=13, fontweight='bold')
-        ax.grid(True, alpha=0.3)
-        ax.axhline(0, color='k', linestyle='--', alpha=0.5, linewidth=0.8)
+        ax.plot(ell, jacobian[:, i], linewidth=2)
+        ax.set_xlabel(r'$\ell$')
+        ax.set_ylabel(r'$\partial C_\ell^{TT}/\partial$' + name)
 
-    plt.suptitle('CMB TT Power Spectrum Jacobian', fontsize=16, fontweight='bold')
-    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+    plt.tight_layout()
 
     # Save
     output_dir = Path("docs/images")
@@ -246,32 +242,20 @@ def generate_elasticities_plot():
 
     # Parameter names
     param_names = [r'$\ln(10^{10}A_s)$', r'$n_s$', r'$H_0$',
-                   r'$\omega_b$', r'$\omega_c$', r'$\tau$']
+                   r'$\omega_\mathrm{b}$', r'$\omega_\mathrm{c}$', r'$\tau$']
 
     # Create figure
     fig, axes = plt.subplots(2, 3, figsize=(16, 10))
     axes = axes.flatten()
 
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-
-    for i, (ax, name, color) in enumerate(zip(axes, param_names, colors)):
+    for i, (ax, name) in enumerate(zip(axes, param_names)):
         # Plot elasticity
-        ax.plot(ell, elasticities[:, i], color=color, linewidth=2.5)
-        ax.set_xlabel(r'Multipole $\ell$', fontsize=12)
-        # Create ylabel without nested braces for LaTeX
-        ylabel_text = f'Elasticity {name}'
-        ax.set_ylabel(ylabel_text, fontsize=12)
-        ax.set_title(f'Elasticity w.r.t. {name}', fontsize=13, fontweight='bold')
-        ax.grid(True, alpha=0.3)
-        ax.axhline(0, color='k', linestyle='--', alpha=0.5, linewidth=0.8)
+        ax.plot(ell, elasticities[:, i], linewidth=2)
+        ax.set_xlabel(r'$\ell$')
+        ax.set_ylabel(r'Elasticity w.r.t. ' + name)
         ax.set_ylim(-3, 3)
 
-        # Add reference lines
-        ax.axhline(1, color='gray', linestyle=':', alpha=0.5, linewidth=0.8)
-        ax.axhline(-1, color='gray', linestyle=':', alpha=0.5, linewidth=0.8)
-
-    plt.suptitle('CMB TT Power Spectrum Elasticities', fontsize=16, fontweight='bold')
-    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+    plt.tight_layout()
 
     # Save
     output_dir = Path("docs/images")
