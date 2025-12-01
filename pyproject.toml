@@ -22,7 +22,7 @@ hypothesis = "^6.100"
 mkdocs = "^1.6"
 mkdocs-material = "^9.5"
 mkdocstrings = "^0.30"
-mkdocstrings-python = "^1.11"
+mkdocstrings-python = ">=1.11,<3.0"
 mike = "^2.1"
 
 [tool.pytest.ini_options]
