@@ -61,7 +61,7 @@ jobs:
 
       - name: Upload coverage reports as artifacts
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: coverage-reports
           path: |
