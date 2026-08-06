@@ -9,10 +9,20 @@ from .data_fetcher import (
     get_fetcher,
     EmulatorDataFetcher
 )
-from .jaxcapse import load_emulator  # Use the actual load_emulator function from jaxcapse.py
+from .jaxcapse import (
+    IdentityInterpolation,
+    MLP,
+    SplinePlan,
+    load_emulator,
+    prepare_interpolation_method,
+)
 
 __all__ = [
     "load_emulator",
+    "MLP",
+    "IdentityInterpolation",
+    "SplinePlan",
+    "prepare_interpolation_method",
     "get_emulator_path",
     "get_fetcher",
     "EmulatorDataFetcher",

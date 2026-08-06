@@ -37,7 +37,15 @@ Then you are good to! You have to create an input array and retrieve your calcul
 ```python3
 input_array = np.array([...]) #write in the relevant numbers
 result = trained_emu.get_Cl(input_array)
+
+# The returned grid always matches the prediction. Subsampled emulators with
+# at most 2048 knots are transparently interpolated with a cubic spline.
+ell = trained_emu.get_ell_grid()
+ell_training = trained_emu.get_training_ell_grid()
 ```
+
+For automatically interpolated grids, source bounds within `0.1` of an integer
+are snapped to that integer. Bounds farther away are moved inward.
 
 For a more detailed explanation, check the tutorial in the `notebooks` folder, which also shows a comparison with the standard `CAMB` Boltzmann solver.
 
