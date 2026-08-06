@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Callable, Dict, Optional
 import numpy as np
 import jax
 import jax.numpy as jnp
@@ -173,13 +173,13 @@ class MLP:
                  emulator: FlaxEmulator,
                  in_MinMax: np.ndarray,
                  out_MinMax: np.ndarray,
-                 postprocessing: callable,
+                 postprocessing: Callable,
                  emulator_description: Dict[str, Any],
                  training_ell_grid: np.ndarray,
-                 interpolation="auto",
-                 max_spline_knots=2048,
-                 endpoint_tolerance=0.1,
-                 InterpolationMethod=None):
+                 interpolation: str = "auto",
+                 max_spline_knots: int = 2048,
+                 endpoint_tolerance: float = 0.1,
+                 InterpolationMethod: Optional[Callable] = None):
         """
         Initialize MLP with jaxace emulator and CAPSE-specific components.
 
@@ -305,9 +305,9 @@ def load_preprocessing(root_path: str, filename: str) -> callable:
 
 def load_emulator(
     folder_path: str,
-    interpolation="auto",
-    max_spline_knots=2048,
-    endpoint_tolerance=0.1,
+    interpolation: str = "auto",
+    max_spline_knots: int = 2048,
+    endpoint_tolerance: float = 0.1,
 ) -> MLP:
     """
     Load a CAPSE emulator using jaxace infrastructure.

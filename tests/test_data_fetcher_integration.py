@@ -300,6 +300,11 @@ class TestCacheOperations(unittest.TestCase):
 
     def test_clear_cache_all(self):
         """Test clearing all cached files."""
+        # Restore the shared fixture if an earlier test changed its cache.
+        if not self.fetcher.tar_path.exists() or not self.fetcher.emulators_dir.exists():
+            success = self.fetcher.download_and_extract(show_progress=False)
+            self.assertTrue(success)
+
         # Ensure files exist
         self.assertTrue(self.fetcher.tar_path.exists())
         self.assertTrue(self.fetcher.emulators_dir.exists())
