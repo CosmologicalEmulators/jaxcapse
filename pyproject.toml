@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.10"
 flax = "^0.10.0"
 jax = "^0.4.30"
-jaxace = {git = "https://github.com/CosmologicalEmulators/jaxace.git", branch = "develop"}
+jaxace = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4"

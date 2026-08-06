@@ -717,24 +717,20 @@ name = "jaxace"
 version = "0.7.0"
 description = "JAX implementation of AbstractCosmologicalEmulators.jl interface with artifact support"
 optional = false
-python-versions = "^3.10"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "jaxace-0.7.0-py3-none-any.whl", hash = "sha256:42efb7348ad805af913ec12bac4b7016cfd6116dab6dcc165fa9998ebf08f3ac"},
+    {file = "jaxace-0.7.0.tar.gz", hash = "sha256:a38c642439066605a12b985dfe01242bc65b2970bc45112f25604522191f7920"},
+]
 
 [package.dependencies]
-diffrax = "^0.7.0"
-fetch-artifacts = "^0.1.0"
-flax = "^0.10.0"
+diffrax = ">=0.7.0,<0.8.0"
+fetch-artifacts = ">=0.1.0,<0.2.0"
+flax = ">=0.10.0,<0.11.0"
 jax = ">=0.4.30"
-numpy = "^2.2.6"
-quadax = "^0.2.9"
-
-[package.source]
-type = "git"
-url = "https://github.com/CosmologicalEmulators/jaxace.git"
-reference = "develop"
-resolved_reference = "018cf741f247e107f96bd58d808ca60314a3018c"
+numpy = ">=2.2.6,<3.0.0"
+quadax = ">=0.2.9,<0.3.0"
 
 [[package]]
 name = "jaxlib"
@@ -2466,4 +2462,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "246ca8a67bdbeddd72da6ea924bf8256485481a8e09fdadded8e4eccc47eabd4"
+content-hash = "070d3d656c0d86059ec1053dd029dbe49a04eb14b01e565c4ca9d768a96e59e0"
