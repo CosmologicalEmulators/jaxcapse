@@ -25,6 +25,14 @@ mkdocstrings = "^0.30"
 mkdocstrings-python = "^1.11"
 mike = "^2.1"
 
+
+[tool.poetry.group.notebooks.dependencies]
+camb = "^2.0.4"
+matplotlib = "^3.10"
+nbformat = "^5.10"
+nbclient = "^0.10"
+ipykernel = "^6.30"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
