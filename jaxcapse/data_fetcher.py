@@ -119,7 +119,7 @@ class EmulatorDataFetcher:
     def _extract_tar(self, tar_path: Path, extract_to: Path,
                     show_progress: bool = True) -> bool:
         """
-        Extract tar.gz file.
+        Extract a gzip- or xz-compressed emulator archive.
 
         Parameters
         ----------
@@ -141,8 +141,12 @@ class EmulatorDataFetcher:
 
             extract_to.mkdir(parents=True, exist_ok=True)
 
-            with tarfile.open(tar_path, 'r:gz') as tar:
-                # Extract all files
+            with tarfile.open(tar_path, 'r:*') as tar:
+                root = extract_to.resolve()
+                for member in tar.getmembers():
+                    target = (root / member.name).resolve()
+                    if not (member.isfile() or member.isdir()) or not target.is_relative_to(root):
+                        raise tarfile.TarError(f"Unsafe archive member: {member.name}")
                 tar.extractall(extract_to)
 
             if show_progress:
@@ -349,6 +353,7 @@ class EmulatorDataFetcher:
             "TT": "CMB temperature power spectrum",
             "EE": "CMB E-mode polarization power spectrum",
             "TE": "CMB temperature-polarization cross spectrum",
+            "BB": "CMB B-mode polarization power spectrum",
             "PP": "CMB lensing potential power spectrum"
         }
 
@@ -400,7 +405,8 @@ _default_fetcher = None
 def get_fetcher(zenodo_url: str = None,
                 emulator_types: list = None,
                 cache_dir: Optional[Union[str, Path]] = None,
-                expected_checksum: str = None) -> EmulatorDataFetcher:
+                expected_checksum: str = None,
+                model_name: str = None) -> EmulatorDataFetcher:
     """
     Get the default fetcher instance (singleton pattern).
 
@@ -411,12 +417,15 @@ def get_fetcher(zenodo_url: str = None,
         If None, uses the default jaxcapse URL.
     emulator_types : list, optional
         List of emulator types to expect.
-        If None, uses default ["TT", "TE", "EE", "PP"].
+        If None, uses default ["TT", "TE", "EE", "BB", "PP"].
     cache_dir : str or Path, optional
         Cache directory for the fetcher
     expected_checksum : str, optional
         Expected SHA256 checksum of the downloaded file.
         If None, uses the default checksum for the default URL.
+    model_name : str, optional
+        Name of the model-specific cache directory. The default fetcher uses
+        the bundled ``camb_mnuw0wacdm`` model.
 
     Returns
     -------
@@ -425,14 +434,22 @@ def get_fetcher(zenodo_url: str = None,
     """
     global _default_fetcher
 
-    # Use defaults for get_fetcher to maintain backward compatibility
+    # Use the currently bundled model for the convenience fetcher.
     if zenodo_url is None:
-        zenodo_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
+        zenodo_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
         # Default checksum for the default URL
         if expected_checksum is None:
-            expected_checksum = "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
+            expected_checksum = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
+        if cache_dir is None:
+            cache_dir = Path.home() / ".jaxcapse_data" / "camb_mnuw0wacdm"
     if emulator_types is None:
-        emulator_types = ["TT", "TE", "EE", "PP"]
+        emulator_types = ["TT", "TE", "EE", "BB", "PP"]
+
+    # Separate archives that happen to contain the same TT/TE/EE/PP filenames.
+    if model_name is not None:
+        base = Path(cache_dir) if cache_dir is not None else Path.home() / ".jaxcapse_data"
+        model_cache = base / model_name
+        return EmulatorDataFetcher(zenodo_url, emulator_types, model_cache, expected_checksum)
 
     if _default_fetcher is None:
         _default_fetcher = EmulatorDataFetcher(zenodo_url, emulator_types, cache_dir, expected_checksum)

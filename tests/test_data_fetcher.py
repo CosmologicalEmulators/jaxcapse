@@ -22,8 +22,8 @@ class TestEmulatorDataFetcher(unittest.TestCase):
         """Set up test fixtures."""
         # Create a temporary directory for testing
         self.temp_dir = tempfile.mkdtemp()
-        self.test_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
-        self.test_types = ["TT", "EE", "TE", "PP"]
+        self.test_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
+        self.test_types = ["TT", "EE", "TE", "BB", "PP"]
 
     def tearDown(self):
         """Clean up test fixtures."""
@@ -71,7 +71,7 @@ class TestEmulatorDataFetcher(unittest.TestCase):
             emulator_types=self.test_types,
             cache_dir=self.temp_dir
         )
-        self.assertEqual(fetcher.tar_path.name, "trained_emu.tar.gz")
+        self.assertEqual(fetcher.tar_path.name, "camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz")
 
         # Test with different URL format
         custom_url = "https://example.com/path/to/my_emulators.tar.gz?param=value"
@@ -91,8 +91,9 @@ class TestEmulatorDataFetcher(unittest.TestCase):
         )
         available = fetcher.list_available()
         self.assertIsInstance(available, dict)
-        self.assertEqual(len(available), 4)
+        self.assertEqual(len(available), 5)
         self.assertIn("TT", available)
+        self.assertIn("BB", available)
         self.assertIn("CMB temperature power spectrum", available["TT"])
 
     def test_list_cached_empty(self):
@@ -138,6 +139,9 @@ class TestEmulatorConfigs(unittest.TestCase):
 
     def tearDown(self):
         """Clean up."""
+        import jaxcapse
+        jaxcapse.EMULATOR_CONFIGS.pop("test_model", None)
+        jaxcapse.trained_emulators.pop("test_model", None)
         # Remove environment variable
         if "JAXCAPSE_NO_AUTO_DOWNLOAD" in os.environ:
             del os.environ["JAXCAPSE_NO_AUTO_DOWNLOAD"]
@@ -151,14 +155,14 @@ class TestEmulatorConfigs(unittest.TestCase):
 
         # Check structure
         self.assertIsInstance(configs, dict)
-        self.assertIn("camb_lcdm", configs)
+        self.assertIn("camb_mnuw0wacdm", configs)
 
         # Check config contents
-        config = configs["camb_lcdm"]
+        config = configs["camb_mnuw0wacdm"]
         self.assertIn("zenodo_url", config)
         self.assertIn("emulator_types", config)
         self.assertIn("description", config)
-        self.assertEqual(len(config["emulator_types"]), 4)
+        self.assertEqual(len(config["emulator_types"]), 5)
 
     def test_trained_emulators_initialization(self):
         """Test that trained_emulators is initialized properly."""
@@ -167,13 +171,14 @@ class TestEmulatorConfigs(unittest.TestCase):
         self.assertIn("trained_emulators", dir(jaxcapse))
         self.assertIsInstance(jaxcapse.trained_emulators, dict)
 
-        # Should have camb_lcdm with None values (auto-download disabled)
-        self.assertIn("camb_lcdm", jaxcapse.trained_emulators)
-        emulators = jaxcapse.trained_emulators["camb_lcdm"]
+        # The only bundled model has empty entries when auto-download is disabled.
+        self.assertIn("camb_mnuw0wacdm", jaxcapse.trained_emulators)
+        emulators = jaxcapse.trained_emulators["camb_mnuw0wacdm"]
         self.assertIn("TT", emulators)
         self.assertIn("EE", emulators)
         self.assertIn("TE", emulators)
         self.assertIn("PP", emulators)
+        self.assertIn("BB", emulators)
 
     def test_add_emulator_config(self):
         """Test adding new emulator configuration."""
@@ -221,8 +226,8 @@ class TestJacobianComputation(unittest.TestCase):
         cls.jaxcapse = jaxcapse
 
         # Try to get the TT emulator
-        if "camb_lcdm" in jaxcapse.trained_emulators:
-            cls.emulator_TT = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
+        if "camb_mnuw0wacdm" in jaxcapse.trained_emulators:
+            cls.emulator_TT = jaxcapse.trained_emulators["camb_mnuw0wacdm"]["TT"]
         else:
             cls.emulator_TT = None
 
@@ -248,44 +253,19 @@ class TestJacobianComputation(unittest.TestCase):
             """
             Run emulator with given parameters.
 
-            Parameters should be in the order expected by the emulator.
-            Typical cosmological parameters: [omega_b, omega_c, h, ln10As, ns, tau, ...]
+            Parameters follow the published nine-parameter CAMB artifact order.
             """
             # The emulator's predict method
-            return self.emulator_TT.predict(params)
+            return self.emulator_TT.predict(params)[:10]
 
         # Create test input parameters
-        # Standard ΛCDM parameters (adjust based on your emulator's expectations)
-        test_params = jnp.array([
-            0.02237,   # omega_b
-            0.1200,    # omega_c
-            0.6736,    # h
-            3.044,     # ln10As
-            0.9649,    # ns
-            0.0544,    # tau (reionization)
-        ])
+        test_params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0])
 
         # Compute Jacobian
-        try:
-            jacobian_fn = jax.jacobian(emulator_function)
-            jacobian = jacobian_fn(test_params)
-
-            # Check Jacobian shape
-            output = emulator_function(test_params)
-            expected_shape = (output.shape[0] if hasattr(output, 'shape') else 1,
-                            test_params.shape[0])
-
-            self.assertEqual(jacobian.shape[-1], test_params.shape[0])
-            print(f"✓ Jacobian computed successfully with shape: {jacobian.shape}")
-
-            # Check that Jacobian has reasonable values (not all zeros or NaNs)
-            self.assertFalse(jnp.all(jacobian == 0), "Jacobian should not be all zeros")
-            self.assertFalse(jnp.any(jnp.isnan(jacobian)), "Jacobian should not contain NaNs")
-
-        except Exception as e:
-            # If the emulator doesn't support autodiff directly, that's okay
-            print(f"Note: Direct Jacobian computation not supported: {e}")
-            self.skipTest(f"Emulator may not support direct autodiff: {e}")
+        jacobian = jax.jacobian(emulator_function)(test_params)
+        self.assertEqual(jacobian.shape, (10, 9))
+        self.assertFalse(jnp.all(jacobian == 0), "Jacobian should not be all zeros")
+        self.assertTrue(bool(jnp.all(jnp.isfinite(jacobian))))
 
     def test_parameter_sensitivity(self):
         """Test parameter sensitivity analysis using Jacobian."""
@@ -305,27 +285,12 @@ class TestJacobianComputation(unittest.TestCase):
             return output
 
         # Test parameters
-        test_params = jnp.array([0.02237, 0.1200, 0.6736, 3.044, 0.9649, 0.0544])
+        test_params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0])
 
-        try:
-            # Compute gradient (Jacobian for scalar output)
-            grad_fn = jax.grad(emulator_at_ell)
-            gradient = grad_fn(test_params)
-
-            # Check gradient
-            self.assertEqual(gradient.shape, test_params.shape)
-            print(f"✓ Gradient computed: {gradient}")
-
-            # Find most sensitive parameter
-            sensitivities = jnp.abs(gradient)
-            most_sensitive_idx = jnp.argmax(sensitivities)
-            param_names = ["omega_b", "omega_c", "h", "ln10As", "ns", "tau"]
-
-            if most_sensitive_idx < len(param_names):
-                print(f"✓ Most sensitive parameter: {param_names[most_sensitive_idx]}")
-
-        except Exception as e:
-            print(f"Note: Gradient computation not supported: {e}")
+        gradient = jax.grad(emulator_at_ell)(test_params)
+        self.assertEqual(gradient.shape, test_params.shape)
+        self.assertTrue(bool(jnp.all(jnp.isfinite(gradient))))
+        self.assertFalse(bool(jnp.all(gradient == 0)))
 
     def test_jit_compilation(self):
         """Test that emulator can be JIT compiled for performance."""
@@ -340,21 +305,11 @@ class TestJacobianComputation(unittest.TestCase):
         def jit_emulator(params):
             return self.emulator_TT.predict(params)
 
-        test_params = jnp.array([0.02237, 0.1200, 0.6736, 3.044, 0.9649, 0.0544])
+        test_params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0])
 
-        try:
-            # First call compiles
-            result1 = jit_emulator(test_params)
-            # Second call should be faster (already compiled)
-            result2 = jit_emulator(test_params)
-
-            # Results should be identical
-            if hasattr(result1, 'shape'):
-                jnp.testing.assert_array_almost_equal(result1, result2)
-            print("✓ JIT compilation successful")
-
-        except Exception as e:
-            print(f"Note: JIT compilation not fully supported: {e}")
+        result1 = jit_emulator(test_params)
+        result2 = jit_emulator(test_params)
+        self.assertTrue(bool(jnp.array_equal(result1, result2)))
 
 
 if __name__ == "__main__":

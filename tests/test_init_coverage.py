@@ -50,9 +50,9 @@ class TestInitializationCoverage(unittest.TestCase):
         import jaxcapse
 
         # trained_emulators should have empty structure
-        self.assertIn("camb_lcdm", jaxcapse.trained_emulators)
-        self.assertIsNone(jaxcapse.trained_emulators["camb_lcdm"]["TT"])
-        self.assertIsNone(jaxcapse.trained_emulators["camb_lcdm"]["EE"])
+        self.assertIn("camb_mnuw0wacdm", jaxcapse.trained_emulators)
+        self.assertIsNone(jaxcapse.trained_emulators["camb_mnuw0wacdm"]["TT"])
+        self.assertIsNone(jaxcapse.trained_emulators["camb_mnuw0wacdm"]["BB"])
 
     def test_reload_emulators_function(self):
         """Test reload_emulators function."""
@@ -72,7 +72,7 @@ class TestInitializationCoverage(unittest.TestCase):
             mock_load.assert_called()
 
             # Check that trained_emulators was updated
-            self.assertIsNotNone(jaxcapse.trained_emulators["camb_lcdm"])
+            self.assertIsNotNone(jaxcapse.trained_emulators["camb_mnuw0wacdm"])
 
     def test_reload_specific_model(self):
         """Test reload_emulators for specific model."""
@@ -83,10 +83,10 @@ class TestInitializationCoverage(unittest.TestCase):
         with patch('jaxcapse._load_emulator_set') as mock_load:
             mock_load.return_value = {"TT": MagicMock()}
 
-            jaxcapse.reload_emulators("camb_lcdm")
+            jaxcapse.reload_emulators("camb_mnuw0wacdm")
             mock_load.assert_called_with(
-                "camb_lcdm",
-                jaxcapse.EMULATOR_CONFIGS["camb_lcdm"],
+                "camb_mnuw0wacdm",
+                jaxcapse.EMULATOR_CONFIGS["camb_mnuw0wacdm"],
                 auto_download=True
             )
 
@@ -184,8 +184,6 @@ class TestInitializationCoverage(unittest.TestCase):
         """Test _load_emulator_set with partial loading success."""
         os.environ["JAXCAPSE_NO_AUTO_DOWNLOAD"] = "1"
         import jaxcapse
-        from jaxcapse import get_emulator_path, load_emulator
-
         config = {
             "zenodo_url": "http://test.com",
             "emulator_types": ["TT", "EE"],
@@ -198,11 +196,11 @@ class TestInitializationCoverage(unittest.TestCase):
             mock_fetcher.download_and_extract.return_value = True
             mock_get_fetcher.return_value = mock_fetcher
 
-            # Mock get_emulator_path to return path for TT but not EE
-            with patch('jaxcapse.get_emulator_path') as mock_get_path:
+            # Paths must come from this model's fetcher, not the LCDM singleton.
+            with patch.object(mock_fetcher, 'get_emulator_path') as mock_get_path:
                 tt_path = Path(self.test_cache) / "TT"
                 tt_path.mkdir(parents=True)
-                mock_get_path.side_effect = lambda x: tt_path if x == "TT" else None
+                mock_get_path.side_effect = lambda x, **kwargs: tt_path if x == "TT" else None
 
                 # Mock load_emulator
                 with patch('jaxcapse.load_emulator') as mock_load:
@@ -241,7 +239,7 @@ class TestInitializationCoverage(unittest.TestCase):
         original_load = None
 
         def mock_load_with_failure(*args, **kwargs):
-            if args[0] == "camb_lcdm":  # Only fail for our test case
+            if args[0] == "camb_mnuw0wacdm":
                 raise Exception("Simulated network error")
             return {}
 
@@ -256,7 +254,7 @@ class TestInitializationCoverage(unittest.TestCase):
             jaxcapse._load_emulator_set = mock_load_with_failure
             try:
                 # This should trigger the error handling
-                jaxcapse.reload_emulators("camb_lcdm")
+                jaxcapse.reload_emulators("camb_mnuw0wacdm")
             except Exception:
                 pass  # Expected to fail
             finally:
@@ -264,7 +262,7 @@ class TestInitializationCoverage(unittest.TestCase):
                 jaxcapse._load_emulator_set = original_load
 
             # Check structure still exists
-            self.assertIn("camb_lcdm", jaxcapse.trained_emulators)
+            self.assertIn("camb_mnuw0wacdm", jaxcapse.trained_emulators)
 
     def test_get_fetcher_with_checksum(self):
         """Test get_fetcher properly passes checksum."""
@@ -287,8 +285,8 @@ class TestInitializationCoverage(unittest.TestCase):
         import jaxcapse
 
         # Check default configuration
-        self.assertIn("camb_lcdm", jaxcapse.EMULATOR_CONFIGS)
-        config = jaxcapse.EMULATOR_CONFIGS["camb_lcdm"]
+        self.assertIn("camb_mnuw0wacdm", jaxcapse.EMULATOR_CONFIGS)
+        config = jaxcapse.EMULATOR_CONFIGS["camb_mnuw0wacdm"]
 
         self.assertIn("zenodo_url", config)
         self.assertIn("emulator_types", config)
@@ -298,7 +296,7 @@ class TestInitializationCoverage(unittest.TestCase):
         # Check checksum is the correct one
         self.assertEqual(
             config["checksum"],
-            "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
+            "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
         )
 
     def test_module_exports(self):
