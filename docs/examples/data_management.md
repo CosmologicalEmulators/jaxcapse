@@ -13,8 +13,12 @@ import jaxcapse
 
 # Emulators are automatically downloaded and loaded on import
 # Access them from the trained_emulators dictionary
-emulator_TT = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
-emulator_EE = jaxcapse.trained_emulators["camb_lcdm"]["EE"]
+emulators = jaxcapse.trained_emulators["camb_mnuw0wacdm"]
+emulator_TT = emulators["TT"]
+emulator_EE = emulators["EE"]
+emulator_TE = emulators["TE"]
+emulator_BB = emulators["BB"]
+emulator_PP = emulators["PP"]
 
 # Or load from a specific path
 from jaxcapse import get_emulator_path, load_emulator
@@ -48,10 +52,10 @@ from jaxcapse.data_fetcher import EmulatorDataFetcher
 
 # Use a custom cache directory
 fetcher = EmulatorDataFetcher(
-    zenodo_url="https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1",
-    emulator_types=["TT", "TE", "EE", "PP"],
+    zenodo_url="https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1",
+    emulator_types=["TT", "TE", "EE", "BB", "PP"],
     cache_dir="/path/to/my/cache",
-    expected_checksum="b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
+    expected_checksum="8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
 )
 
 # Load a specific emulator
@@ -115,11 +119,11 @@ import jax.numpy as jnp
 import jaxcapse
 
 # Access the pre-loaded TT emulator
-emulator_TT = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
+emulator_TT = jaxcapse.trained_emulators["camb_mnuw0wacdm"]["TT"]
 
 # Define cosmological parameters
-# Order: omega_b, omega_c, h, ln10As, ns, tau
-fiducial_params = jnp.array([0.02237, 0.1200, 0.6736, 3.044, 0.9649, 0.0544])
+# Order: ln10As, ns, tau, H0, omega_b, omega_c, Mnu, w0, wa
+fiducial_params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0])
 
 # The emulator has a predict method that works with JAX
 cl_tt = emulator_TT.predict(fiducial_params)
@@ -134,7 +138,7 @@ print(f"Jacobian shape: {jacobian.shape}")
 
 # Example: sensitivity at ell=100
 ell_index = 100
-param_names = ['omega_b', 'omega_c', 'h', 'ln10As', 'ns', 'tau']
+param_names = ['ln10As', 'ns', 'tau', 'H0', 'omega_b', 'omega_c', 'Mnu', 'w0', 'wa']
 print(f"\nParameter sensitivities at ell={ell_index}:")
 for i, param in enumerate(param_names):
     print(f"  ∂Cl/∂{param:8s} = {jacobian[ell_index, i]:+.3e}")

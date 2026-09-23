@@ -5,6 +5,9 @@ Unit tests for jaxcapse data fetcher and emulator loading.
 import unittest
 import tempfile
 import shutil
+import io
+import stat
+import tarfile
 from pathlib import Path
 import sys
 import os
@@ -127,6 +130,56 @@ class TestEmulatorDataFetcher(unittest.TestCase):
         # New instance with different parameters
         fetcher3 = get_fetcher(cache_dir=self.temp_dir)
         self.assertIs(fetcher3, fetcher1)  # Still same instance due to singleton
+
+    def test_default_and_named_fetchers_share_the_default_model_cache(self):
+        from jaxcapse import data_fetcher
+
+        with tempfile.TemporaryDirectory() as home:
+            old_home = os.environ.get("HOME")
+            os.environ["HOME"] = home
+            old_fetcher = data_fetcher._default_fetcher
+            data_fetcher._default_fetcher = None
+            try:
+                default = get_fetcher()
+                named = get_fetcher(model_name="camb_mnuw0wacdm")
+                expected = Path(home) / ".jaxcapse_data" / "camb_mnuw0wacdm" / "emulators"
+                self.assertEqual(default.emulators_dir, expected)
+                self.assertEqual(named.emulators_dir, expected)
+            finally:
+                data_fetcher._default_fetcher = old_fetcher
+                if old_home is None:
+                    os.environ.pop("HOME", None)
+                else:
+                    os.environ["HOME"] = old_home
+
+    def test_cached_archive_checksum_is_verified_before_extraction(self):
+        fetcher = EmulatorDataFetcher(
+            self.test_url,
+            self.test_types,
+            cache_dir=self.temp_dir,
+            expected_checksum="0" * 64,
+        )
+        fetcher.tar_path.write_bytes(b"untrusted cached archive")
+
+        self.assertFalse(fetcher.download_and_extract(show_progress=False))
+        self.assertFalse(fetcher.tar_path.exists())
+        self.assertFalse(fetcher.emulators_dir.exists())
+
+    @unittest.skipUnless(hasattr(tarfile, "data_filter"), "tar data filter unavailable")
+    def test_data_filter_removes_privileged_mode_bits(self):
+        archive_path = Path(self.temp_dir) / "privileged.tar"
+        extracted_path = Path(self.temp_dir) / "extracted"
+        with tarfile.open(archive_path, "w") as archive:
+            member = tarfile.TarInfo("TT/weights.npy")
+            member.mode = 0o4755
+            payload = b"test"
+            member.size = len(payload)
+            archive.addfile(member, io.BytesIO(payload))
+
+        fetcher = EmulatorDataFetcher(self.test_url, ["TT"], cache_dir=self.temp_dir)
+        self.assertTrue(fetcher._extract_tar(archive_path, extracted_path, show_progress=False))
+        mode = (extracted_path / "TT" / "weights.npy").stat().st_mode
+        self.assertEqual(mode & (stat.S_ISUID | stat.S_ISGID | stat.S_ISVTX), 0)
 
 
 class TestEmulatorConfigs(unittest.TestCase):

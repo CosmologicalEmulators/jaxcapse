@@ -1,191 +1,83 @@
 # Usage Examples
 
-This guide demonstrates how to use jaxcapse to compute and visualize CMB power spectra and their derivatives.
+The bundled model is the CAMB 2.0.4 + CosmoRec `Mnu-w0-wa-CDM` emulator. On
+import, jaxcapse loads its five spectra under
+`jaxcapse.trained_emulators["camb_mnuw0wacdm"]`.
 
-## Quick Start
+## Evaluate all spectra
 
 ```python
-import jaxcapse
+import jax
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
+import jaxcapse
 
-# The emulators are automatically loaded when you import jaxcapse
-# Access them via the trained_emulators dictionary
-emulators = jaxcapse.trained_emulators["camb_lcdm"]
+emulators = jaxcapse.trained_emulators["camb_mnuw0wacdm"]
+
+# Parameter order: ln10As, ns, tau, H0, omega_b, omega_c, Mnu, w0, wa.
+params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0])
+
+# Training bounds: [2.5, 0.85, 0.02, 50, 0.02, 0.08, 0, -3, -3]
+#                  [3.5, 1.05, 0.15, 90, 0.025, 0.16, 0.5, 0.5, 2]
+# Plus the conditional prior w0 + wa < -0.5.
+lower = jnp.array([2.5, 0.85, 0.02, 50, 0.02, 0.08, 0, -3, -3])
+upper = jnp.array([3.5, 1.05, 0.15, 90, 0.025, 0.16, 0.5, 0.5, 2])
+assert bool(jnp.all((lower <= params) & (params <= upper)))
+assert float(params[7] + params[8]) < -0.5
+
+ell = emulators["TT"].get_ell_grid()
+assert bool(jnp.array_equal(ell, jnp.arange(2, 9501)))
+spectra = {name: emulator.get_Cl(params) for name, emulator in emulators.items()}
 ```
 
-## Computing Power Spectra
+All five predictions have 9,499 samples at `ell=2..9500`. `TT`, `TE`, `EE` and
+`BB` are lensed `D_ell` in μK². `PP` is
+`[ell(ell+1)]² C_ell^phiphi/(2π)` (dimensionless), despite the `get_Cl` name.
+The released training sample contains no exact `Mnu=0` point; prefer an
+interior positive mass when evaluating the model.
 
-### Basic Usage
-
-```python
-# Define cosmological parameters
-# Order: [omega_b, omega_c, h, ln10As, ns, tau]
-params = jnp.array([
-    0.02237,   # Baryon density
-    0.1200,    # CDM density
-    0.6736,    # Hubble parameter
-    3.044,     # Log primordial amplitude
-    0.9649,    # Spectral index
-    0.0544     # Optical depth
-])
-
-# Compute all power spectra
-cl_tt = emulators["TT"].predict(params)  # Temperature
-cl_ee = emulators["EE"].predict(params)  # E-mode polarization
-cl_te = emulators["TE"].predict(params)  # Temperature-polarization cross
-cl_pp = emulators["PP"].predict(params)  # Lensing potential
-```
-
-### Plotting All Spectra
+## Plot the spectra
 
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Create multipole array (adjust based on your emulator output)
-n_ells = len(cl_tt)
-ell = np.arange(2, n_ells + 2)
-
-# Create figure with subplots for all spectra
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-
-# Plot TT spectrum
-axes[0, 0].loglog(ell, ell * (ell + 1) * cl_tt / (2 * np.pi))
-axes[0, 0].set_xlabel(r'$\ell$')
-axes[0, 0].set_ylabel(r'$\ell(\ell+1)C_\ell^{TT}/2\pi$ [$\mu K^2$]')
-axes[0, 0].set_title('Temperature Power Spectrum')
-axes[0, 0].grid(True, alpha=0.3)
-
-# Plot EE spectrum
-axes[0, 1].loglog(ell, ell * (ell + 1) * cl_ee / (2 * np.pi))
-axes[0, 1].set_xlabel(r'$\ell$')
-axes[0, 1].set_ylabel(r'$\ell(\ell+1)C_\ell^{EE}/2\pi$ [$\mu K^2$]')
-axes[0, 1].set_title('E-mode Polarization Spectrum')
-axes[0, 1].grid(True, alpha=0.3)
-
-# Plot TE spectrum (can be negative, use semilogy with abs)
-cl_te_plot = ell * (ell + 1) * np.abs(cl_te) / (2 * np.pi)
-axes[1, 0].loglog(ell, cl_te_plot)
-axes[1, 0].set_xlabel(r'$\ell$')
-axes[1, 0].set_ylabel(r'$|\ell(\ell+1)C_\ell^{TE}/2\pi|$ [$\mu K^2$]')
-axes[1, 0].set_title('Temperature-Polarization Cross Spectrum')
-axes[1, 0].grid(True, alpha=0.3)
-
-# Plot PP spectrum (lensing potential)
-axes[1, 1].loglog(ell, ell * (ell + 1) * cl_pp)
-axes[1, 1].set_xlabel(r'$\ell$')
-axes[1, 1].set_ylabel(r'$\ell(\ell+1)C_\ell^{\phi\phi}$')
-axes[1, 1].set_title('Lensing Potential Spectrum')
-axes[1, 1].grid(True, alpha=0.3)
-
-plt.tight_layout()
-plt.savefig('cmb_spectra.png', dpi=150, bbox_inches='tight')
+ell = np.asarray(ell)
+fig, axes = plt.subplots(3, 2, figsize=(12, 13))
+for ax, name in zip(axes.flat, ("TT", "TE", "EE", "BB", "PP")):
+    values = np.asarray(spectra[name])
+    if name == "TE":  # TE changes sign.
+        ax.semilogx(ell, values)
+    else:
+        ax.loglog(ell, values)
+    ax.set(title=name, xlabel=r"$\ell$", ylabel=r"$D_\ell$")
+    ax.grid(alpha=0.3)
+axes.flat[-1].set_visible(False)
+fig.tight_layout()
 plt.show()
 ```
 
-![CMB Power Spectra](images/cmb_spectra.png)
+## Batch evaluation
 
-## Computing Jacobians with JAX
-
-One of the powerful features of jaxcapse is that the emulators are fully differentiable using JAX's automatic differentiation.
-
-### Basic Jacobian Computation
+`get_Cl_batch` and `jax.vmap` both accept a batch with shape
+`(n_samples, 9)`:
 
 ```python
-import jax
-import jax.numpy as jnp
-
-# Define a function that computes TT spectrum from parameters
-def compute_cl_tt(params):
-    """Compute TT power spectrum for given parameters."""
-    return emulators["TT"].predict(params)
-
-# Compute Jacobian using JAX autodiff
-jacobian_fn = jax.jacobian(compute_cl_tt)
-jacobian = jacobian_fn(params)
-
-print(f"Jacobian shape: {jacobian.shape}")
-# Output: (n_ell, n_params) - derivative of each Cl with respect to each parameter
+params_batch = jnp.stack((params, params.at[6].set(0.1)))
+tt = emulators["TT"]
+batch_spectra = tt.get_Cl_batch(params_batch)
+vmap_spectra = jax.vmap(tt.get_Cl)(params_batch)
+assert batch_spectra.shape == (2, 9499)
+assert bool(jnp.allclose(batch_spectra, vmap_spectra, rtol=1e-12))
 ```
 
-### Visualizing Parameter Sensitivities
+## Gradients and Hessians
 
 ```python
-# Parameter names for labeling
-param_names = [r'$\omega_b$', r'$\omega_c$', r'$h$',
-               r'$\ln(10^{10}A_s)$', r'$n_s$', r'$\tau$']
+tt = emulators["TT"]
+tt_jacobian = jax.jacfwd(tt.get_Cl)(params)
 
-# Create figure showing Jacobian for each parameter
-fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-axes = axes.flatten()
+def scalar_prediction(x):
+    return jnp.sum(tt.get_Cl(x)[100:120])
 
-for i, (ax, name) in enumerate(zip(axes, param_names)):
-    # Plot derivative of Cl_TT with respect to parameter i
-    ax.semilogx(ell, jacobian[:, i])
-    ax.set_xlabel(r'$\ell$')
-    ax.set_ylabel(rf'$\partial C_\ell^{{TT}}/\partial {name}$')
-    ax.set_title(f'Sensitivity to {name}')
-    ax.grid(True, alpha=0.3)
-    ax.axhline(0, color='k', linestyle='--', alpha=0.5)
-
-plt.suptitle('CMB TT Power Spectrum Jacobian', fontsize=16)
-plt.tight_layout()
-plt.savefig('jacobian_tt.png', dpi=150, bbox_inches='tight')
-plt.show()
+tt_hessian = jax.hessian(scalar_prediction)(params)
 ```
-
-![TT Jacobian](images/jacobian_tt.png)
-
-
-
-## Complete Example Script
-
-Here's a complete script that generates all the plots:
-
-```python
-import jaxcapse
-import jax
-import jax.numpy as jnp
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Set up parameters
-params = jnp.array([0.02237, 0.1200, 0.6736, 3.044, 0.9649, 0.0544])
-param_names = [r'$\omega_b$', r'$\omega_c$', r'$h$',
-               r'$\ln(10^{10}A_s)$', r'$n_s$', r'$\tau$']
-
-# Get emulators
-emulators = jaxcapse.trained_emulators["camb_lcdm"]
-
-# Compute all spectra
-cl_tt = emulators["TT"].predict(params)
-cl_ee = emulators["EE"].predict(params)
-cl_te = emulators["TE"].predict(params)
-cl_pp = emulators["PP"].predict(params)
-
-# Create ell array
-n_ells = len(cl_tt)
-ell = np.arange(2, n_ells + 2)
-
-# Plot all spectra
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
-# ... (plotting code as shown above)
-
-# Compute and plot Jacobian
-jacobian_fn = jax.jacobian(emulators["TT"].predict)
-jacobian = jacobian_fn(params)
-
-fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-# ... (Jacobian plotting code as shown above)
-
-print("All plots generated successfully!")
-```
-
-## Tips and Best Practices
-
-1. **Parameter ranges**: Keep parameters within training ranges for accurate predictions
-2. **JIT compilation**: Use `@jax.jit` for repeated evaluations
-3. **Batch processing**: Use `vmap` for multiple parameter sets
-4. **Gradient checks**: Verify Jacobians have expected physical behavior
-5. **Memory management**: Emulators are loaded once at import

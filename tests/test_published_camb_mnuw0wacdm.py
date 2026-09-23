@@ -66,3 +66,22 @@ def test_published_models_are_differentiable(published_models):
         gradient = jax.grad(lambda params: jnp.sum(emulator.get_Cl(params)[100:301]) / scale)(x)
         assert bool(jnp.all(jnp.isfinite(gradient)))
         assert bool(jnp.max(jnp.abs(gradient)) > 0)
+
+
+def test_published_model_batch_matches_vmap(published_models):
+    inputs = jnp.asarray(np.loadtxt(DATA / "camb_mnuw0wacdm_inputs.txt")[:2])
+    for emulator in published_models.values():
+        batch = emulator.get_Cl_batch(inputs)
+        vectorized = jax.vmap(emulator.get_Cl)(inputs)
+        assert batch.shape == (2, 9499)
+        np.testing.assert_allclose(np.asarray(batch), np.asarray(vectorized), rtol=1e-13)
+
+
+def test_published_model_hessian_is_finite_and_symmetric(published_models):
+    emulator = published_models["TT"]
+    params = jnp.asarray(np.loadtxt(DATA / "camb_mnuw0wacdm_inputs.txt")[0])
+    scalar_prediction = lambda x: jnp.sum(emulator.get_Cl(x)[100:120])
+    hessian = jax.hessian(scalar_prediction)(params)
+    assert hessian.shape == (9, 9)
+    assert bool(jnp.all(jnp.isfinite(hessian)))
+    np.testing.assert_allclose(np.asarray(hessian), np.asarray(hessian.T), rtol=1e-12, atol=1e-12)

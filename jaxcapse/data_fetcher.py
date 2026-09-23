@@ -147,7 +147,8 @@ class EmulatorDataFetcher:
                     target = (root / member.name).resolve()
                     if not (member.isfile() or member.isdir()) or not target.is_relative_to(root):
                         raise tarfile.TarError(f"Unsafe archive member: {member.name}")
-                tar.extractall(extract_to)
+                extract_options = {"filter": "data"} if hasattr(tarfile, "data_filter") else {}
+                tar.extractall(extract_to, **extract_options)
 
             if show_progress:
                 print("Extraction complete!")
@@ -219,20 +220,19 @@ class EmulatorDataFetcher:
             if not success:
                 return False
 
-            # Verify checksum if provided
-            if self.expected_checksum:
+        # Verify downloaded and pre-existing archives before extraction.
+        if self.expected_checksum:
+            if show_progress:
+                print("Verifying checksum...")
+            if not self._verify_checksum(self.tar_path, self.expected_checksum):
                 if show_progress:
-                    print("Verifying checksum...")
-                if not self._verify_checksum(self.tar_path, self.expected_checksum):
-                    if show_progress:
-                        print("ERROR: Checksum verification failed!")
-                        print("The downloaded file may be corrupted.")
-                    # Remove the corrupted file
-                    if self.tar_path.exists():
-                        self.tar_path.unlink()
-                    return False
-                elif show_progress:
-                    print("✓ Checksum verified")
+                    print("ERROR: Checksum verification failed!")
+                    print("The cached archive may be corrupted.")
+                if self.tar_path.exists():
+                    self.tar_path.unlink()
+                return False
+            elif show_progress:
+                print("✓ Checksum verified")
 
         # Extract tar file
         if show_progress:
@@ -441,14 +441,15 @@ def get_fetcher(zenodo_url: str = None,
         if expected_checksum is None:
             expected_checksum = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
         if cache_dir is None:
-            cache_dir = Path.home() / ".jaxcapse_data" / "camb_mnuw0wacdm"
+            default_model = model_name or "camb_mnuw0wacdm"
+            cache_dir = Path.home() / ".jaxcapse_data" / default_model
     if emulator_types is None:
         emulator_types = ["TT", "TE", "EE", "BB", "PP"]
 
     # Separate archives that happen to contain the same TT/TE/EE/PP filenames.
     if model_name is not None:
         base = Path(cache_dir) if cache_dir is not None else Path.home() / ".jaxcapse_data"
-        model_cache = base / model_name
+        model_cache = base if base.name == model_name else base / model_name
         return EmulatorDataFetcher(zenodo_url, emulator_types, model_cache, expected_checksum)
 
     if _default_fetcher is None:
