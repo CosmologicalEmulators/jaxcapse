@@ -400,6 +400,10 @@ class EmulatorDataFetcher:
 
 # Convenience functions for direct access
 _default_fetcher = None
+_BUNDLED_MODEL_NAME = "camb_mnuw0wacdm"
+_BUNDLED_MODEL_URL = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
+_BUNDLED_MODEL_CHECKSUM = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
+_BUNDLED_SPECTRA = ("TT", "TE", "EE", "BB", "PP")
 
 
 def get_fetcher(zenodo_url: str = None,
@@ -415,19 +419,20 @@ def get_fetcher(zenodo_url: str = None,
     ----------
     zenodo_url : str, optional
         URL to download the emulator tar.gz file from.
-        If None, uses the default jaxcapse URL.
+        If None, uses the bundled model URL. That URL receives its published
+        checksum by default, whether supplied explicitly or implicitly.
     emulator_types : list, optional
         List of emulator types to expect.
         If None, uses default ["TT", "TE", "EE", "BB", "PP"].
     cache_dir : str or Path, optional
         Root cache directory. If ``model_name`` is provided, the model name is
-        appended as a subdirectory.
+        always appended as a subdirectory.
     expected_checksum : str, optional
         Expected SHA256 checksum of the downloaded file.
         If None, uses the default checksum for the default URL.
     model_name : str, optional
-        Name of the model-specific cache directory. The default fetcher uses
-        the bundled ``camb_mnuw0wacdm`` model.
+        Name of the model-specific cache directory. Without an explicit URL,
+        only the bundled ``camb_mnuw0wacdm`` model is available.
 
     Returns
     -------
@@ -441,27 +446,27 @@ def get_fetcher(zenodo_url: str = None,
 
     if use_default_fetcher:
         if _default_fetcher is None:
-            zenodo_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
-            expected_checksum = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
-            emulator_types = ["TT", "TE", "EE", "BB", "PP"]
-            cache_dir = Path.home() / ".jaxcapse_data" / "camb_mnuw0wacdm"
+            cache_dir = Path.home() / ".jaxcapse_data" / _BUNDLED_MODEL_NAME
             _default_fetcher = EmulatorDataFetcher(
-                zenodo_url, emulator_types, cache_dir, expected_checksum,
+                _BUNDLED_MODEL_URL, list(_BUNDLED_SPECTRA), cache_dir,
+                _BUNDLED_MODEL_CHECKSUM,
             )
         return _default_fetcher
 
     if zenodo_url is None:
-        if model_name not in (None, "camb_mnuw0wacdm"):
-            raise ValueError("zenodo_url is required for a model other than camb_mnuw0wacdm")
-        zenodo_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
-        if expected_checksum is None:
-            expected_checksum = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
+        if model_name not in (None, _BUNDLED_MODEL_NAME):
+            raise ValueError(f"zenodo_url is required for model {model_name!r}")
+        zenodo_url = _BUNDLED_MODEL_URL
+    if zenodo_url == _BUNDLED_MODEL_URL and expected_checksum is None:
+        expected_checksum = _BUNDLED_MODEL_CHECKSUM
     if emulator_types is None:
-        emulator_types = ["TT", "TE", "EE", "BB", "PP"]
+        emulator_types = list(_BUNDLED_SPECTRA)
 
     base = Path(cache_dir) if cache_dir is not None else Path.home() / ".jaxcapse_data"
     if model_name is not None:
         base = base / model_name
+    elif zenodo_url == _BUNDLED_MODEL_URL:
+        base = base / _BUNDLED_MODEL_NAME
     return EmulatorDataFetcher(zenodo_url, emulator_types, base, expected_checksum)
 
 

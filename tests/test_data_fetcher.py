@@ -143,6 +143,11 @@ class TestEmulatorDataFetcher(unittest.TestCase):
             self.assertEqual(custom.cache_dir, Path(self.temp_dir))
             self.assertEqual(custom.expected_checksum, "a" * 64)
             self.assertIs(get_fetcher(), default)
+
+            explicit_default_url = get_fetcher(zenodo_url=default.zenodo_url)
+            self.assertIsNot(explicit_default_url, default)
+            self.assertEqual(explicit_default_url.expected_checksum, "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8")
+            self.assertEqual(explicit_default_url.cache_dir, default.cache_dir)
         finally:
             data_fetcher._default_fetcher = old_fetcher
 

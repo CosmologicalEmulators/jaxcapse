@@ -35,6 +35,10 @@ All five predictions have 9,499 samples at `ell=2..9500`. `TT`, `TE`, `EE` and
 The released training sample contains no exact `Mnu=0` point; prefer an
 interior positive mass when evaluating the model.
 
+For custom artifacts, `l.npy` must have exactly one multipole per network
+output. `load_emulator` raises `ValueError` on a length mismatch; it does not
+guess a slice for legacy grids.
+
 ## Plot the spectra
 
 ```python
