@@ -116,6 +116,7 @@ Here's a complete example that downloads emulator data and computes Jacobians:
 ```python
 import jax
 import jax.numpy as jnp
+import numpy as np
 import jaxcapse
 
 # Access the pre-loaded TT emulator
@@ -136,8 +137,10 @@ jacobian = jacobian_fn(fiducial_params)
 print(f"Cl shape: {cl_tt.shape}")
 print(f"Jacobian shape: {jacobian.shape}")
 
-# Example: sensitivity at ell=100
-ell_index = 100
+# Example: sensitivity at ell=100. The grid starts at ell=2, so resolve the
+# position from the grid rather than using ell as a zero-based array index.
+ell = np.asarray(emulator_TT.get_ell_grid())
+ell_index = np.flatnonzero(ell == 100).item()
 param_names = ['ln10As', 'ns', 'tau', 'H0', 'omega_b', 'omega_c', 'Mnu', 'w0', 'wa']
 print(f"\nParameter sensitivities at ell={ell_index}:")
 for i, param in enumerate(param_names):

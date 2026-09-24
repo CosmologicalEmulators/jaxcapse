@@ -122,14 +122,53 @@ class TestEmulatorDataFetcher(unittest.TestCase):
         self.assertIn("Unknown emulator type", str(context.exception))
 
     def test_get_fetcher_singleton(self):
-        """Test that get_fetcher returns a singleton."""
-        fetcher1 = get_fetcher()
-        fetcher2 = get_fetcher()
-        self.assertIs(fetcher1, fetcher2)
+        """Only a fully default call reuses the singleton."""
+        from jaxcapse import data_fetcher
 
-        # New instance with different parameters
-        fetcher3 = get_fetcher(cache_dir=self.temp_dir)
-        self.assertIs(fetcher3, fetcher1)  # Still same instance due to singleton
+        old_fetcher = data_fetcher._default_fetcher
+        data_fetcher._default_fetcher = None
+        try:
+            default = get_fetcher()
+            self.assertIs(get_fetcher(), default)
+
+            custom = get_fetcher(
+                zenodo_url="https://example.com/custom.tar.gz",
+                emulator_types=["TT"],
+                cache_dir=self.temp_dir,
+                expected_checksum="a" * 64,
+            )
+            self.assertIsNot(custom, default)
+            self.assertEqual(custom.zenodo_url, "https://example.com/custom.tar.gz")
+            self.assertEqual(custom.emulator_types, ["TT"])
+            self.assertEqual(custom.cache_dir, Path(self.temp_dir))
+            self.assertEqual(custom.expected_checksum, "a" * 64)
+            self.assertIs(get_fetcher(), default)
+        finally:
+            data_fetcher._default_fetcher = old_fetcher
+
+    def test_unknown_model_requires_an_explicit_url(self):
+        with self.assertRaisesRegex(ValueError, "zenodo_url is required"):
+            get_fetcher(model_name="other")
+
+    def test_custom_fetcher_does_not_poison_default_singleton(self):
+        from jaxcapse import data_fetcher
+
+        old_fetcher = data_fetcher._default_fetcher
+        data_fetcher._default_fetcher = None
+        try:
+            custom = get_fetcher(
+                zenodo_url="https://example.com/custom.tar.gz",
+                emulator_types=["TT"],
+                cache_dir=self.temp_dir,
+            )
+            default = get_fetcher()
+            self.assertIsNot(custom, default)
+            self.assertEqual(custom.zenodo_url, "https://example.com/custom.tar.gz")
+            self.assertEqual(custom.emulator_types, ["TT"])
+            self.assertIn("camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz", default.zenodo_url)
+            self.assertEqual(default.emulator_types, ["TT", "TE", "EE", "BB", "PP"])
+        finally:
+            data_fetcher._default_fetcher = old_fetcher
 
     def test_default_and_named_fetchers_share_the_default_model_cache(self):
         from jaxcapse import data_fetcher
