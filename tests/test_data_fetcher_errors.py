@@ -7,6 +7,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import io
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 from urllib.error import URLError
@@ -25,8 +26,8 @@ class TestErrorScenarios(unittest.TestCase):
     def setUp(self):
         """Set up test directory."""
         self.test_cache = tempfile.mkdtemp(prefix="jaxcapse_error_test_")
-        self.zenodo_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
-        self.emulator_types = ["TT", "TE", "EE", "PP"]
+        self.zenodo_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
+        self.emulator_types = ["TT", "TE", "EE", "BB", "PP"]
 
     def tearDown(self):
         """Clean up test directory."""
@@ -94,6 +95,22 @@ class TestErrorScenarios(unittest.TestCase):
                 show_progress=False
             )
             self.assertFalse(success)
+
+    def test_archive_path_traversal_is_rejected(self):
+        fetcher = EmulatorDataFetcher(
+            zenodo_url=self.zenodo_url,
+            emulator_types=self.emulator_types,
+            cache_dir=self.test_cache,
+        )
+        with tarfile.open(fetcher.tar_path, "w:gz") as archive:
+            payload = b"unsafe"
+            member = tarfile.TarInfo("../outside.txt")
+            member.size = len(payload)
+            archive.addfile(member, io.BytesIO(payload))
+
+        self.assertFalse(fetcher._extract_tar(fetcher.tar_path, fetcher.emulators_dir,
+                                              show_progress=False))
+        self.assertFalse((Path(self.test_cache) / "outside.txt").exists())
 
     @patch('tarfile.open')
     def test_extraction_error_handling(self, mock_tarfile_open):

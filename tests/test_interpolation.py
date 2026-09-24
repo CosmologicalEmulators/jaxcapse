@@ -125,13 +125,23 @@ def test_tolerant_integer_endpoint_inference():
         SplinePlan([2.0, 5.0, 10.0], endpoint_tolerance=0.5)
 
 
-def test_legacy_dense_metadata_is_resolved_to_network_output_grid():
-    legacy_grid = np.arange(0, 10051)
-    resolved = _resolve_training_ell_grid(legacy_grid, 4999)
-    np.testing.assert_array_equal(resolved, np.arange(2, 5001))
+def test_multipole_grid_must_match_network_output(mock_emulator_directory):
+    grid = np.arange(2, 102)
+    np.testing.assert_array_equal(_resolve_training_ell_grid(grid, 100), grid)
 
+    for mismatched_grid, output_length in (
+        (np.arange(0, 13), 4),
+        (np.arange(0, 10051), 4999),
+        (np.linspace(3, 20, 10), 5),
+    ):
+        with pytest.raises(ValueError, match="does not match"):
+            _resolve_training_ell_grid(mismatched_grid, output_length)
+
+    # This zero-origin grid previously loaded by silently assigning outputs
+    # to ell=2:101, despite having 103 grid entries for 100 network outputs.
+    np.save(mock_emulator_directory / "l.npy", np.arange(0, 103))
     with pytest.raises(ValueError, match="does not match"):
-        _resolve_training_ell_grid(np.linspace(3, 20, 10), 5)
+        load_emulator(str(mock_emulator_directory))
 
 
 def test_dense_grid_identity_returns_original_array():

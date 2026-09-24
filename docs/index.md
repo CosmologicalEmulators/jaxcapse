@@ -35,6 +35,7 @@ jaxcapse provides trained emulators for:
 - **TT**: Temperature-Temperature
 - **EE**: E-mode polarization
 - **TE**: Temperature-E-mode cross-correlation
+- **BB**: B-mode polarization
 - **PP**: Lensing potential
 
 ## Quick Example
@@ -43,12 +44,12 @@ jaxcapse provides trained emulators for:
 import jaxcapse
 import jax.numpy as jnp
 
-# Load a trained emulator
-emulator_TT = jaxcapse.load_emulator("trained_emu/TT/")
+# Access a bundled emulator (all five models are loaded on import)
+emulator_TT = jaxcapse.trained_emulators["camb_mnuw0wacdm"]["TT"]
 
-# Define cosmological parameters
-# [ln10As, ns, H0, ωb, ωc, τ]
-params = jnp.array([3.1, 0.96, 67.0, 0.022, 0.12, 0.055])
+# Parameter order: [ln10As, ns, tau, H0, omega_b, omega_c, Mnu, w0, wa]
+params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0])
+# The training domain additionally requires w0 + wa < -0.5.
 
 # Compute power spectrum
 cl_TT = emulator_TT.get_Cl(params)
@@ -82,7 +83,7 @@ pip install -e .
 - Python ≥ 3.10
 - JAX ≥ 0.4.30
 - Flax ≥ 0.10.0
-- jaxace ≥ 0.1.1
+- jaxace ≥ 0.7.0
 
 ## Citation
 

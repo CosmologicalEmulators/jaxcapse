@@ -134,35 +134,5 @@ def postprocessing(input_params, output):
         assert jnp.allclose(result, expected)
 
 
-class TestIntegrationWithRealEmulator:
-    """Test that the actual trained emulators can be loaded."""
-    
-    def test_load_real_emulator_if_exists(self):
-        """Test loading actual trained emulator if available."""
-        # Check if trained_emu directory exists
-        trained_path = Path(__file__).parent.parent / "trained_emu" / "TT"
-        
-        if trained_path.exists():
-            from jaxcapse import jaxcapse
-            # Try to load the real emulator
-            mlp = jaxcapse.load_emulator(str(trained_path))
-            
-            # Basic checks
-            assert mlp is not None
-            assert hasattr(mlp, 'get_Cl')
-            assert hasattr(mlp, 'emulator_description')
-            
-            # Test inference with realistic parameters
-            import jax.numpy as jnp
-            params = jnp.array([3.1, 0.96, 67.0, 0.022, 0.12, 0.055])
-            cl = mlp.get_Cl(params)
-            
-            # Check output is reasonable
-            assert cl.shape[0] > 0  # Has some Cl values
-            assert jnp.all(jnp.isfinite(cl))  # All finite
-        else:
-            pytest.skip("trained_emu directory not found")
-
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

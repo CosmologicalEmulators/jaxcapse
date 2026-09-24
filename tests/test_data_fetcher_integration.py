@@ -1,6 +1,6 @@
 """
 Integration tests for data fetcher with real Zenodo downloads.
-These tests actually download the 5MB file from Zenodo to ensure real-world functionality.
+These tests download the published emulator artifact from Zenodo.
 """
 
 import os
@@ -17,15 +17,15 @@ from jaxcapse.data_fetcher import EmulatorDataFetcher, get_fetcher
 
 
 class TestRealZenodoDownload(unittest.TestCase):
-    """Tests that actually download from Zenodo (5MB file)."""
+    """Tests that actually download the published artifact from Zenodo."""
 
     @classmethod
     def setUpClass(cls):
         """Set up test cache directory."""
         cls.test_cache = tempfile.mkdtemp(prefix="jaxcapse_test_")
-        cls.zenodo_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
-        cls.correct_checksum = "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
-        cls.emulator_types = ["TT", "TE", "EE", "PP"]
+        cls.zenodo_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
+        cls.correct_checksum = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
+        cls.emulator_types = ["TT", "TE", "EE", "BB", "PP"]
         print(f"\nTest cache directory: {cls.test_cache}")
 
     @classmethod
@@ -237,8 +237,8 @@ class TestCacheOperations(unittest.TestCase):
     def setUpClass(cls):
         """Set up test cache with downloaded data."""
         cls.test_cache = tempfile.mkdtemp(prefix="jaxcapse_cache_test_")
-        cls.zenodo_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
-        cls.emulator_types = ["TT", "TE", "EE", "PP"]
+        cls.zenodo_url = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
+        cls.emulator_types = ["TT", "TE", "EE", "BB", "PP"]
 
         # Pre-download data for cache tests
         cls.fetcher = EmulatorDataFetcher(
@@ -271,7 +271,7 @@ class TestCacheOperations(unittest.TestCase):
         """Test listing available emulator types."""
         available = self.fetcher.list_available()
         self.assertIsInstance(available, dict)
-        self.assertEqual(len(available), 4)
+        self.assertEqual(len(available), 5)
         self.assertIn("TT", available)
         self.assertIn("CMB temperature power spectrum", available["TT"])
 

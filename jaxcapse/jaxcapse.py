@@ -5,7 +5,6 @@ import jax.numpy as jnp
 import json
 import importlib.util
 import os
-import warnings
 from functools import partial
 
 # Import jaxace components (required dependency in pyproject.toml)
@@ -100,29 +99,12 @@ def _dense_endpoint(value, side, tolerance):
 
 def _resolve_training_ell_grid(training_ell_grid, output_length):
     training_grid = np.asarray(training_ell_grid)
-    if len(training_grid) == output_length:
-        return training_grid
-
-    # Legacy Capse artifacts stored the complete CAMB 0:10050 grid, while the
-    # network output and notebooks explicitly use ell=2:5000.
-    if (
-        len(training_grid) >= output_length + 2
-        and training_grid[0] == 0
-        and np.all(np.diff(training_grid) == 1)
-    ):
-        warnings.warn(
-            "Using the legacy Capse ell=2:"
-            f"{output_length + 1} output grid because l.npy does not match "
-            "the network output length.",
-            DeprecationWarning,
-            stacklevel=2,
+    if len(training_grid) != output_length:
+        raise ValueError(
+            f"The multipole grid length ({len(training_grid)}) does not match "
+            f"the emulator output length ({output_length})"
         )
-        return training_grid[2:output_length + 2]
-
-    raise ValueError(
-        f"The multipole grid length ({len(training_grid)}) does not match "
-        f"the emulator output length ({output_length})"
-    )
+    return training_grid
 
 
 def prepare_interpolation_method(
@@ -360,7 +342,7 @@ def load_emulator(
     emulator_description = nn_dict.get("emulator_description", {})
     training_ell_grid = _resolve_training_ell_grid(
         jnp.load(os.path.join(folder_path, "l.npy")),
-        out_MinMax.shape[0],
+        nn_dict["n_output_features"],
     )
 
     # Create MLP instance with jaxace backend
