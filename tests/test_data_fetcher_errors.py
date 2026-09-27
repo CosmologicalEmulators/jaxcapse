@@ -3,7 +3,6 @@ Test error scenarios for data fetcher using mocks.
 These tests mock network and file errors without real downloads.
 """
 
-import os
 import shutil
 import tempfile
 import unittest

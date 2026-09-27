@@ -13,7 +13,7 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from jaxcapse.data_fetcher import EmulatorDataFetcher, get_fetcher
+from jaxcapse.data_fetcher import EmulatorDataFetcher
 
 
 class TestRealZenodoDownload(unittest.TestCase):

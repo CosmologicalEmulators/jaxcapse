@@ -59,7 +59,7 @@ class TestEmulatorDataFetcher(unittest.TestCase):
     def test_cache_directory_creation(self):
         """Test that cache directory is created properly."""
         cache_path = Path(self.temp_dir) / "test_cache"
-        fetcher = EmulatorDataFetcher(
+        EmulatorDataFetcher(
             zenodo_url=self.test_url,
             emulator_types=self.test_types,
             cache_dir=cache_path
@@ -286,7 +286,7 @@ class TestEmulatorConfigs(unittest.TestCase):
         test_url = "https://example.com/test.tar.gz"
         test_types = ["TT", "EE"]
 
-        result = jaxcapse.add_emulator_config(
+        jaxcapse.add_emulator_config(
             model_name=test_model,
             zenodo_url=test_url,
             emulator_types=test_types,

@@ -12,17 +12,18 @@ jax = "^0.4.30"
 jaxace = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.4"
+pytest = ">=8.4,<10.0"
 pytest-cov = "^7.0"
 pytest-xdist = "^3.6"
 pytest-benchmark = "^5.1"
 hypothesis = "^6.100"
+ruff = "0.15.16"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6"
 mkdocs-material = "^9.5"
-mkdocstrings = "^0.30"
-mkdocstrings-python = "^1.11"
+mkdocstrings = ">=0.30,<1.1"
+mkdocstrings-python = ">=1.11,<3.0"
 mike = "^2.1"
 
 

@@ -5,8 +5,6 @@ This module handles downloading, extracting, and caching of trained emulator dat
 """
 
 import hashlib
-import os
-import pickle
 import shutil
 import tarfile
 import urllib.request
@@ -95,7 +93,7 @@ class EmulatorDataFetcher:
                           end='', flush=True)
 
             if show_progress:
-                print(f"Downloading emulator data from Zenodo...")
+                print("Downloading emulator data from Zenodo...")
 
             urllib.request.urlretrieve(url, temp_file,
                                       reporthook=download_hook if show_progress else None)
@@ -137,7 +135,7 @@ class EmulatorDataFetcher:
         """
         try:
             if show_progress:
-                print(f"Extracting emulator data...")
+                print("Extracting emulator data...")
 
             extract_to.mkdir(parents=True, exist_ok=True)
 
@@ -214,7 +212,7 @@ class EmulatorDataFetcher:
         # Download tar file if needed
         if force or not self.tar_path.exists():
             if show_progress:
-                print(f"Downloading from Zenodo...")
+                print("Downloading from Zenodo...")
             success = self._download_file(self.zenodo_url, self.tar_path,
                                          show_progress=show_progress)
             if not success:

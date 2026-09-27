@@ -139,7 +139,7 @@ class TestInitializationCoverage(unittest.TestCase):
         os.environ["JAXCAPSE_NO_AUTO_DOWNLOAD"] = "1"
         import jaxcapse
 
-        result = jaxcapse.add_emulator_config(
+        jaxcapse.add_emulator_config(
             model_name="test_model_no_load",
             zenodo_url="https://example.com/test2.tar.gz",
             emulator_types=["TT"],
@@ -248,7 +248,7 @@ class TestInitializationCoverage(unittest.TestCase):
         original_load = jaxcapse._load_emulator_set
 
         # Now test reload with failure
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
 
             jaxcapse._load_emulator_set = mock_load_with_failure
@@ -267,7 +267,6 @@ class TestInitializationCoverage(unittest.TestCase):
     def test_get_fetcher_with_checksum(self):
         """Test get_fetcher properly passes checksum."""
         os.environ["JAXCAPSE_NO_AUTO_DOWNLOAD"] = "1"
-        import jaxcapse
         from jaxcapse.data_fetcher import get_fetcher
 
         # Test with custom checksum

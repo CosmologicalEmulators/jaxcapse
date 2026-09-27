@@ -80,7 +80,8 @@ def test_published_model_batch_matches_vmap(published_models):
 def test_published_model_hessian_is_finite_and_symmetric(published_models):
     emulator = published_models["TT"]
     params = jnp.asarray(np.loadtxt(DATA / "camb_mnuw0wacdm_inputs.txt")[0])
-    scalar_prediction = lambda x: jnp.sum(emulator.get_Cl(x)[100:120])
+    def scalar_prediction(x):
+        return jnp.sum(emulator.get_Cl(x)[100:120])
     hessian = jax.hessian(scalar_prediction)(params)
     assert hessian.shape == (9, 9)
     assert bool(jnp.all(jnp.isfinite(hessian)))

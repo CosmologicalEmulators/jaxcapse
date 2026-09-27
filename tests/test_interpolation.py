@@ -15,7 +15,8 @@ from jaxcapse import (
     prepare_interpolation_method,
 )
 from jaxcapse.jaxcapse import _resolve_training_ell_grid
-from tests.fixtures import *
+
+pytestmark = pytest.mark.usefixtures("set_random_seed")
 
 jax.config.update("jax_enable_x64", True)
 
