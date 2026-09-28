@@ -1,284 +1,134 @@
 #!/usr/bin/env python
-"""
-Generate plots for jaxcapse documentation.
-Fixed version that properly generates all plots.
-"""
+"""Generate documentation plots from the bundled CAMB Mnu-w0-wa emulators."""
 
-import sys
 import os
+import shutil
+import sys
 from pathlib import Path
-import numpy as np
-import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend
-import matplotlib.pyplot as plt
 
-# Add jaxcapse to path
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Set matplotlib style to match notebook
-# Try to use LaTeX if available, but don't fail if not
-try:
-    import subprocess
-    subprocess.check_output(['latex', '--version'])
-    plt.rcParams['text.usetex'] = True
-    print("LaTeX detected, using LaTeX rendering for plots")
-except (FileNotFoundError, subprocess.CalledProcessError):
-    plt.rcParams['text.usetex'] = False
-    print("LaTeX not available, using matplotlib's default math rendering")
+plt.rcParams.update({
+    "figure.dpi": 100,
+    "savefig.dpi": 150,
+    "font.size": 11,
+    "axes.labelsize": 12,
+    "figure.facecolor": "white",
+    "axes.facecolor": "white",
+})
+plt.rcParams["text.usetex"] = shutil.which("latex") is not None
 
-plt.rcParams['figure.dpi'] = 100
-plt.rcParams['savefig.dpi'] = 150
-plt.rcParams['font.size'] = 11
-plt.rcParams['axes.labelsize'] = 12
-plt.rcParams['xtick.labelsize'] = 10
-plt.rcParams['ytick.labelsize'] = 10
-plt.rcParams['legend.fontsize'] = 10
-plt.rcParams['figure.facecolor'] = 'white'
-plt.rcParams['axes.facecolor'] = 'white'
+PARAMS = [3.044, 0.965, 0.054, 67.4, 0.02237, 0.12, 0.06, -1.0, 0.0]
+PARAMETER_NAMES = [
+    r"\ln(10^{10}A_s)", r"n_s", r"\tau", r"H_0",
+    r"\omega_b", r"\omega_c", r"M_\nu", r"w_0", r"w_a",
+]
+SPECTRA = ("TT", "TE", "EE", "BB", "PP")
+OUTPUT_DIR = Path(os.environ.get("JAXCAPSE_DOC_PLOT_DIR", "docs/images"))
+
+
+def _load_emulators():
+    import jax
+    import jax.numpy as jnp
+
+    jax.config.update("jax_enable_x64", True)
+    import jaxcapse
+
+    emulators = jaxcapse.trained_emulators["camb_mnuw0wacdm"]
+    if set(emulators) != set(SPECTRA) or any(emulators[name] is None for name in SPECTRA):
+        raise RuntimeError("The published five-spectrum CAMB emulator is not fully loaded")
+    params = jnp.asarray(PARAMS, dtype=jnp.float64)
+    return jax, jnp, emulators, params
+
+
+def _ell_grid(emulators):
+    ell = np.asarray(emulators["TT"].get_ell_grid())
+    if not np.array_equal(ell, np.arange(2, 9501)):
+        raise ValueError("The bundled CAMB spectra must use ell=2..9500")
+    return ell
+
+
+def _save(fig, filename):
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = OUTPUT_DIR / filename
+    fig.savefig(output_path, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved {output_path}")
 
 
 def generate_cmb_spectra_plot():
-    """Generate plot showing all four CMB power spectra."""
-    print("Generating CMB power spectra plot...")
+    """Plot the five lensed D_ell emulator outputs."""
+    _, _, emulators, params = _load_emulators()
+    ell = _ell_grid(emulators)
+    spectra = {name: np.asarray(emulators[name].get_Cl(params)) for name in SPECTRA}
 
-    try:
-        import jaxcapse
-        import jax.numpy as jnp
-
-        # Get emulators
-        emulators = jaxcapse.trained_emulators["camb_lcdm"]
-
-        # Define fiducial parameters
-        params = jnp.array([
-            3.1,       # ln10As
-            0.96,      # ns
-            67,        # H0
-            0.02,      # omega_b
-            0.12,      # omega_c
-            0.05       # tau
-        ])
-
-        # Compute all spectra
-        cl_tt = emulators["TT"].predict(params)
-        cl_ee = emulators["EE"].predict(params)
-        cl_te = emulators["TE"].predict(params)
-        cl_pp = emulators["PP"].predict(params)
-
-        # Create ell array
-        n_ells = len(cl_tt)
-        ell = np.arange(2, n_ells + 2)
-
-    except Exception as e:
-        print(f"Error loading emulators: {e}")
-        print("Generating synthetic data for demonstration...")
-        # Generate synthetic data
-        ell = np.arange(2, 2501)
-        n_ells = len(ell)
-
-        # Generate synthetic spectra (simple approximations)
-        cl_tt = 2000 * np.exp(-((ell - 220) / 100)**2) * 2 * np.pi / (ell * (ell + 1))**2
-        cl_ee = 50 * np.exp(-((ell - 150) / 80)**2) * 2 * np.pi / (ell * (ell + 1))**2
-        cl_te = 100 * np.exp(-((ell - 180) / 90)**2) * 2 * np.pi / (ell * (ell + 1))**2
-        cl_pp = 1e-7 * (ell + 0.1)**2
-
-    # Create figure with subplots
-    fig, axes = plt.subplots(2, 2, figsize=(14, 11))
-
-    # Plot TT spectrum
-    axes[0, 0].plot(ell, cl_tt, linewidth=2)
-    axes[0, 0].set_xlabel(r'$\ell$')
-    axes[0, 0].set_ylabel(r'$C_\ell^{TT}$')
-    axes[0, 0].set_xlim(2, n_ells)
-
-    # Plot EE spectrum
-    axes[0, 1].plot(ell, cl_ee, linewidth=2)
-    axes[0, 1].set_xlabel(r'$\ell$')
-    axes[0, 1].set_ylabel(r'$C_\ell^{EE}$')
-    axes[0, 1].set_xlim(2, n_ells)
-
-    # Plot TE spectrum
-    axes[1, 0].plot(ell, cl_te, linewidth=2)
-    axes[1, 0].set_xlabel(r'$\ell$')
-    axes[1, 0].set_ylabel(r'$C_\ell^{TE}$')
-    axes[1, 0].set_xlim(2, n_ells)
-
-    # Plot PP spectrum (lensing potential)
-    axes[1, 1].semilogx(ell, cl_pp, linewidth=2)
-    axes[1, 1].set_xlabel(r'$\ell$')
-    axes[1, 1].set_ylabel(r'$C_\ell^{\phi\phi}$')
-    axes[1, 1].set_xlim(2, n_ells)
-
-    plt.tight_layout()
-
-    # Save figure
-    output_dir = Path("docs/images")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "cmb_spectra.png"
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"  ✓ Saved: {output_path}")
+    fig, axes = plt.subplots(3, 2, figsize=(12, 13))
+    for ax, name in zip(axes.flat, SPECTRA):
+        values = spectra[name]
+        if name == "TE":
+            ax.semilogx(ell, values)
+        else:
+            ax.loglog(ell, values)
+        ax.set(title=name, xlabel=r"$\ell$", ylabel=r"$D_\ell$")
+        ax.grid(alpha=0.3)
+    axes.flat[-1].set_visible(False)
+    fig.tight_layout()
+    _save(fig, "cmb_spectra.png")
 
 
 def generate_jacobian_plot():
-    """Generate Jacobian plot for TT spectrum."""
-    print("Generating TT Jacobian plot...")
+    """Plot the TT Jacobian with respect to all nine cosmological inputs."""
+    jax, _, emulators, params = _load_emulators()
+    ell = _ell_grid(emulators)
+    jacobian = np.asarray(jax.jacfwd(emulators["TT"].get_Cl)(params))
 
-    try:
-        import jaxcapse
-        import jax
-        import jax.numpy as jnp
-
-        # Get TT emulator
-        emulator_tt = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
-
-        # Define fiducial parameters
-        fiducial = jnp.array([
-            3.1,       # ln10As
-            0.96,      # ns
-            67,        # H0
-            0.02,      # omega_b
-            0.12,      # omega_c
-            0.05       # tau
-        ])
-
-        # Compute Jacobian
-        jacobian_fn = jax.jacobian(emulator_tt.predict)
-        jacobian = jacobian_fn(fiducial)
-
-        # Create ell array
-        n_ells = jacobian.shape[0]
-        ell = np.arange(2, n_ells + 2)
-
-    except Exception as e:
-        print(f"Error computing Jacobian: {e}")
-        print("Generating synthetic Jacobian for demonstration...")
-        # Generate synthetic Jacobian
-        ell = np.arange(2, 2501)
-        n_ells = len(ell)
-        n_params = 6
-
-        # Create synthetic Jacobian with different patterns for each parameter
-        jacobian = np.zeros((n_ells, n_params))
-        for i in range(n_params):
-            freq = 200 + i * 50
-            phase = i * np.pi / 6
-            jacobian[:, i] = (1000 / (i + 1)) * np.sin(2 * np.pi * ell / freq + phase) * np.exp(-ell / 1000)
-
-    # Parameter names
-    param_names = [r'$\ln(10^{10}A_s)$', r'$n_s$', r'$H_0$',
-                   r'$\omega_\mathrm{b}$', r'$\omega_\mathrm{c}$', r'$\tau$']
-
-    # Create figure
-    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
-    axes = axes.flatten()
-
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b']
-
-    for i, (ax, name) in enumerate(zip(axes, param_names)):
-        # Plot derivative
-        ax.plot(ell, jacobian[:, i], linewidth=2)
-        ax.set_xlabel(r'$\ell$')
-        ax.set_ylabel(r'$\partial C_\ell^{TT}/\partial$' + name)
-
-    plt.tight_layout()
-
-    # Save
-    output_dir = Path("docs/images")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "jacobian_tt.png"
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"  ✓ Saved: {output_path}")
+    fig, axes = plt.subplots(3, 3, figsize=(16, 12))
+    for index, (ax, name) in enumerate(zip(axes.flat, PARAMETER_NAMES)):
+        ax.semilogx(ell, jacobian[:, index])
+        ax.set(xlabel=r"$\ell$", ylabel=rf"$\partial D_\ell^{{TT}}/\partial {name}$")
+        ax.grid(alpha=0.3)
+        ax.axhline(0, color="k", linestyle="--", alpha=0.5)
+    fig.tight_layout()
+    _save(fig, "jacobian_tt.png")
 
 
 def generate_elasticities_plot():
-    """Generate elasticities plot."""
-    print("Generating TT elasticities plot...")
+    """Plot TT logarithmic sensitivities for all nine cosmological inputs."""
+    jax, _, emulators, params = _load_emulators()
+    ell = _ell_grid(emulators)
+    emulator = emulators["TT"]
+    values = np.asarray(emulator.get_Cl(params))
+    jacobian = np.asarray(jax.jacfwd(emulator.get_Cl)(params))
+    elasticities = np.divide(
+        jacobian * np.asarray(params)[None, :],
+        values[:, None],
+        out=np.full_like(jacobian, np.nan),
+        where=values[:, None] != 0,
+    )
 
-    try:
-        import jaxcapse
-        import jax
-        import jax.numpy as jnp
-
-        # Get TT emulator
-        emulator_tt = jaxcapse.trained_emulators["camb_lcdm"]["TT"]
-
-        # Define fiducial parameters
-        fiducial = jnp.array([
-            3.1,       # ln10As
-            0.96,      # ns
-            67,        # H0
-            0.02,      # omega_b
-            0.12,      # omega_c
-            0.05       # tau
-        ])
-
-        # Compute spectrum and Jacobian
-        cl_tt = emulator_tt.predict(fiducial)
-        jacobian_fn = jax.jacobian(emulator_tt.predict)
-        jacobian = jacobian_fn(fiducial)
-
-        # Compute elasticities
-        elasticities = jacobian * fiducial[None, :] / cl_tt[:, None]
-
-        # Create ell array
-        n_ells = elasticities.shape[0]
-        ell = np.arange(2, n_ells + 2)
-
-    except Exception as e:
-        print(f"Error computing elasticities: {e}")
-        print("Generating synthetic elasticities for demonstration...")
-        # Generate synthetic elasticities
-        ell = np.arange(2, 2501)
-        n_ells = len(ell)
-        n_params = 6
-
-        # Create synthetic elasticities
-        elasticities = np.zeros((n_ells, n_params))
-        for i in range(n_params):
-            freq = 200 + i * 50
-            phase = i * np.pi / 6
-            elasticities[:, i] = (2.0 / (i + 1)) * np.sin(2 * np.pi * ell / freq + phase)
-
-    # Parameter names
-    param_names = [r'$\ln(10^{10}A_s)$', r'$n_s$', r'$H_0$',
-                   r'$\omega_\mathrm{b}$', r'$\omega_\mathrm{c}$', r'$\tau$']
-
-    # Create figure
-    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
-    axes = axes.flatten()
-
-    for i, (ax, name) in enumerate(zip(axes, param_names)):
-        # Plot elasticity
-        ax.plot(ell, elasticities[:, i], linewidth=2)
-        ax.set_xlabel(r'$\ell$')
-        ax.set_ylabel(r'Elasticity w.r.t. ' + name)
-        ax.set_ylim(-3, 3)
-
-    plt.tight_layout()
-
-    # Save
-    output_dir = Path("docs/images")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "elasticities_tt.png"
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"  ✓ Saved: {output_path}")
+    fig, axes = plt.subplots(3, 3, figsize=(16, 12))
+    for index, (ax, name) in enumerate(zip(axes.flat, PARAMETER_NAMES)):
+        ax.semilogx(ell, elasticities[:, index])
+        ax.set(
+            xlabel=r"$\ell$",
+            ylabel=rf"$({name}/D_\ell^{{TT}})\,\partial D_\ell^{{TT}}/\partial {name}$",
+        )
+        ax.grid(alpha=0.3)
+        ax.axhline(0, color="k", linestyle="--", alpha=0.5)
+    fig.tight_layout()
+    _save(fig, "elasticities_tt.png")
 
 
 def main():
-    print("=" * 60)
-    print("Generating jaxcapse Documentation Plots")
-    print("=" * 60)
-
-    # Generate all plots
     generate_cmb_spectra_plot()
     generate_jacobian_plot()
     generate_elasticities_plot()
-
-    print("=" * 60)
-    print("✓ All plots generated successfully!")
-    print("=" * 60)
 
 
 if __name__ == "__main__":

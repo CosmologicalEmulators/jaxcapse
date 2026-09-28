@@ -47,6 +47,27 @@ ell_training = trained_emu.get_training_ell_grid()
 For automatically interpolated grids, source bounds within `0.1` of an integer
 are snapped to that integer. Bounds farther away are moved inward.
 
+## CAMB Mnu-w0-wa-CDM emulators
+
+The published [CAMB + CosmoRec artifact](https://doi.org/10.5281/zenodo.22921165)
+contains TT, TE, EE, BB, and PP models. jaxcapse downloads them into a separate
+model-specific cache so they cannot be confused with the existing LCDM models:
+
+```python
+import jax.numpy as jnp
+import jaxcapse
+
+params = jnp.array([3.044, 0.965, 0.054, 67.4, 0.02237, 0.120, 0.06, -1.0, 0.0])
+tt = jaxcapse.trained_emulators["camb_mnuw0wacdm"]["TT"]
+D_ell_TT = tt.get_Cl(params)
+ell = tt.get_ell_grid()  # 2:9500
+```
+
+The input order is `ln10As, ns, tau, H0, omega_b, omega_c, Mnu, w0, wa`,
+restricted to `w0 + wa < -0.5`. Exact `Mnu = 0` was not in the training set.
+Despite the method name, TT/TE/EE/BB outputs are lensed **D_ell in microK^2**;
+PP is `[ell*(ell+1)]^2 C_ell^phiphi/(2*pi)` (dimensionless).
+
 For a more detailed explanation, check the tutorial in the `notebooks` folder, which also shows a comparison with the standard `CAMB` Boltzmann solver.
 
 ## Citing

@@ -32,7 +32,7 @@ __all__ = [
     "reload_emulators",
 ]
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
 # Automatically download and extract emulators when package is imported
 # This ensures data is available when users import jaxcapse
@@ -46,19 +46,12 @@ trained_emulators = {}
 # Define available emulator configurations
 # This can be easily extended with new models in the future
 EMULATOR_CONFIGS = {
-    "camb_lcdm": {
-        "zenodo_url": "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1",
-        "emulator_types": ["TT", "TE", "EE", "PP"],
-        "description": "CAMB for the LCDM model",
-        "checksum": "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
+    "camb_mnuw0wacdm": {
+        "zenodo_url": "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1",
+        "emulator_types": ["TT", "TE", "EE", "BB", "PP"],
+        "description": "CAMB + CosmoRec Mnu-w0-wa-CDM CMB power spectra",
+        "checksum": "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8",
     }
-    # Future models can be added here:
-    # "class_lcdm": {
-    #     "zenodo_url": "https://zenodo.org/...",
-    #     "emulator_types": ["TT", "EE"],
-    #     "description": "Standard LCDM model",
-    #     "checksum": "..."
-    # }
 }
 
 
@@ -69,7 +62,7 @@ def _load_emulator_set(model_name: str, config: dict, auto_download: bool = True
     Parameters
     ----------
     model_name : str
-        Name of the model (e.g., "camb_lcdm")
+        Name of the model (e.g., "camb_mnuw0wacdm")
     config : dict
         Configuration dictionary with zenodo_url and emulator_types
     auto_download : bool
@@ -87,7 +80,8 @@ def _load_emulator_set(model_name: str, config: dict, auto_download: bool = True
         fetcher = get_fetcher(
             zenodo_url=config["zenodo_url"],
             emulator_types=config["emulator_types"],
-            expected_checksum=config.get("checksum")
+            expected_checksum=config.get("checksum"),
+            model_name=model_name,
         )
 
         # Download if needed and requested
@@ -95,12 +89,13 @@ def _load_emulator_set(model_name: str, config: dict, auto_download: bool = True
             cached = fetcher.list_cached()
             if not cached or len(cached) < len(config["emulator_types"]):
                 print(f"jaxcapse: Downloading {model_name} emulators from Zenodo...")
-                fetcher.download_and_extract(show_progress=True)
+                if not fetcher.download_and_extract(show_progress=True):
+                    raise RuntimeError(f"Failed to download {model_name} emulator data")
 
         # Load each emulator
         for emulator_type in config["emulator_types"]:
             try:
-                emulator_path = get_emulator_path(emulator_type)
+                emulator_path = fetcher.get_emulator_path(emulator_type, download_if_missing=False)
                 if emulator_path and emulator_path.exists():
                     emulators[emulator_type] = load_emulator(str(emulator_path))
                 else:
