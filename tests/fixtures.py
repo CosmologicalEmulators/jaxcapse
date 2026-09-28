@@ -4,11 +4,7 @@ Shared test fixtures and utilities for jaxcapse tests.
 
 import pytest
 import numpy as np
-import jax.numpy as jnp
-import tempfile
 import json
-from pathlib import Path
-import os
 
 
 @pytest.fixture
@@ -216,9 +212,9 @@ def edge_case_params():
     }
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def set_random_seed():
-    """Set random seed for reproducibility in all tests."""
+    """Set the random seed for test modules that request it."""
     np.random.seed(42)
     # Note: JAX random seeds are handled separately in individual tests
     yield

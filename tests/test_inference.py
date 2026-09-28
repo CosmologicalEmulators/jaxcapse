@@ -15,7 +15,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from jaxcapse import jaxcapse
-from tests.fixtures import *
+
+pytestmark = pytest.mark.usefixtures("set_random_seed")
 
 # Configure JAX for 64-bit precision
 jax.config.update('jax_enable_x64', True)

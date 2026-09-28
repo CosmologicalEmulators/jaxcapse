@@ -5,8 +5,6 @@ This module handles downloading, extracting, and caching of trained emulator dat
 """
 
 import hashlib
-import os
-import pickle
 import shutil
 import tarfile
 import urllib.request
@@ -95,7 +93,7 @@ class EmulatorDataFetcher:
                           end='', flush=True)
 
             if show_progress:
-                print(f"Downloading emulator data from Zenodo...")
+                print("Downloading emulator data from Zenodo...")
 
             urllib.request.urlretrieve(url, temp_file,
                                       reporthook=download_hook if show_progress else None)
@@ -119,7 +117,7 @@ class EmulatorDataFetcher:
     def _extract_tar(self, tar_path: Path, extract_to: Path,
                     show_progress: bool = True) -> bool:
         """
-        Extract tar.gz file.
+        Extract a gzip- or xz-compressed emulator archive.
 
         Parameters
         ----------
@@ -137,13 +135,18 @@ class EmulatorDataFetcher:
         """
         try:
             if show_progress:
-                print(f"Extracting emulator data...")
+                print("Extracting emulator data...")
 
             extract_to.mkdir(parents=True, exist_ok=True)
 
-            with tarfile.open(tar_path, 'r:gz') as tar:
-                # Extract all files
-                tar.extractall(extract_to)
+            with tarfile.open(tar_path, 'r:*') as tar:
+                root = extract_to.resolve()
+                for member in tar.getmembers():
+                    target = (root / member.name).resolve()
+                    if not (member.isfile() or member.isdir()) or not target.is_relative_to(root):
+                        raise tarfile.TarError(f"Unsafe archive member: {member.name}")
+                extract_options = {"filter": "data"} if hasattr(tarfile, "data_filter") else {}
+                tar.extractall(extract_to, **extract_options)
 
             if show_progress:
                 print("Extraction complete!")
@@ -209,26 +212,25 @@ class EmulatorDataFetcher:
         # Download tar file if needed
         if force or not self.tar_path.exists():
             if show_progress:
-                print(f"Downloading from Zenodo...")
+                print("Downloading from Zenodo...")
             success = self._download_file(self.zenodo_url, self.tar_path,
                                          show_progress=show_progress)
             if not success:
                 return False
 
-            # Verify checksum if provided
-            if self.expected_checksum:
+        # Verify downloaded and pre-existing archives before extraction.
+        if self.expected_checksum:
+            if show_progress:
+                print("Verifying checksum...")
+            if not self._verify_checksum(self.tar_path, self.expected_checksum):
                 if show_progress:
-                    print("Verifying checksum...")
-                if not self._verify_checksum(self.tar_path, self.expected_checksum):
-                    if show_progress:
-                        print("ERROR: Checksum verification failed!")
-                        print("The downloaded file may be corrupted.")
-                    # Remove the corrupted file
-                    if self.tar_path.exists():
-                        self.tar_path.unlink()
-                    return False
-                elif show_progress:
-                    print("✓ Checksum verified")
+                    print("ERROR: Checksum verification failed!")
+                    print("The cached archive may be corrupted.")
+                if self.tar_path.exists():
+                    self.tar_path.unlink()
+                return False
+            elif show_progress:
+                print("✓ Checksum verified")
 
         # Extract tar file
         if show_progress:
@@ -349,6 +351,7 @@ class EmulatorDataFetcher:
             "TT": "CMB temperature power spectrum",
             "EE": "CMB E-mode polarization power spectrum",
             "TE": "CMB temperature-polarization cross spectrum",
+            "BB": "CMB B-mode polarization power spectrum",
             "PP": "CMB lensing potential power spectrum"
         }
 
@@ -395,28 +398,39 @@ class EmulatorDataFetcher:
 
 # Convenience functions for direct access
 _default_fetcher = None
+_BUNDLED_MODEL_NAME = "camb_mnuw0wacdm"
+_BUNDLED_MODEL_URL = "https://zenodo.org/records/22921165/files/camb_mnuw0wacdm_500000_width96_runtime_v1.tar.xz?download=1"
+_BUNDLED_MODEL_CHECKSUM = "8f4ae21a0214bdf83ee5557b6d8369ed3db729b91f933e4550d6e2c6eb0b5af8"
+_BUNDLED_SPECTRA = ("TT", "TE", "EE", "BB", "PP")
 
 
 def get_fetcher(zenodo_url: str = None,
                 emulator_types: list = None,
                 cache_dir: Optional[Union[str, Path]] = None,
-                expected_checksum: str = None) -> EmulatorDataFetcher:
+                expected_checksum: str = None,
+                model_name: str = None) -> EmulatorDataFetcher:
     """
-    Get the default fetcher instance (singleton pattern).
+    Get the default fetcher, reusing its singleton only for a default call.
+    Explicitly configured calls always receive an independent fetcher.
 
     Parameters
     ----------
     zenodo_url : str, optional
         URL to download the emulator tar.gz file from.
-        If None, uses the default jaxcapse URL.
+        If None, uses the bundled model URL. That URL receives its published
+        checksum by default, whether supplied explicitly or implicitly.
     emulator_types : list, optional
         List of emulator types to expect.
-        If None, uses default ["TT", "TE", "EE", "PP"].
+        If None, uses default ["TT", "TE", "EE", "BB", "PP"].
     cache_dir : str or Path, optional
-        Cache directory for the fetcher
+        Root cache directory. If ``model_name`` is provided, the model name is
+        always appended as a subdirectory.
     expected_checksum : str, optional
         Expected SHA256 checksum of the downloaded file.
         If None, uses the default checksum for the default URL.
+    model_name : str, optional
+        Name of the model-specific cache directory. Without an explicit URL,
+        only the bundled ``camb_mnuw0wacdm`` model is available.
 
     Returns
     -------
@@ -424,19 +438,34 @@ def get_fetcher(zenodo_url: str = None,
         The fetcher instance
     """
     global _default_fetcher
+    use_default_fetcher = all(value is None for value in (
+        zenodo_url, emulator_types, cache_dir, expected_checksum, model_name,
+    ))
 
-    # Use defaults for get_fetcher to maintain backward compatibility
+    if use_default_fetcher:
+        if _default_fetcher is None:
+            cache_dir = Path.home() / ".jaxcapse_data" / _BUNDLED_MODEL_NAME
+            _default_fetcher = EmulatorDataFetcher(
+                _BUNDLED_MODEL_URL, list(_BUNDLED_SPECTRA), cache_dir,
+                _BUNDLED_MODEL_CHECKSUM,
+            )
+        return _default_fetcher
+
     if zenodo_url is None:
-        zenodo_url = "https://zenodo.org/records/17115001/files/trained_emu.tar.gz?download=1"
-        # Default checksum for the default URL
-        if expected_checksum is None:
-            expected_checksum = "b1d6f47c3bafb6b1ef0b80069e3d7982f274c6c7352ee44e460ffb9c2a573210"
+        if model_name not in (None, _BUNDLED_MODEL_NAME):
+            raise ValueError(f"zenodo_url is required for model {model_name!r}")
+        zenodo_url = _BUNDLED_MODEL_URL
+    if zenodo_url == _BUNDLED_MODEL_URL and expected_checksum is None:
+        expected_checksum = _BUNDLED_MODEL_CHECKSUM
     if emulator_types is None:
-        emulator_types = ["TT", "TE", "EE", "PP"]
+        emulator_types = list(_BUNDLED_SPECTRA)
 
-    if _default_fetcher is None:
-        _default_fetcher = EmulatorDataFetcher(zenodo_url, emulator_types, cache_dir, expected_checksum)
-    return _default_fetcher
+    base = Path(cache_dir) if cache_dir is not None else Path.home() / ".jaxcapse_data"
+    if model_name is not None:
+        base = base / model_name
+    elif zenodo_url == _BUNDLED_MODEL_URL:
+        base = base / _BUNDLED_MODEL_NAME
+    return EmulatorDataFetcher(zenodo_url, emulator_types, base, expected_checksum)
 
 
 def get_emulator_directory(emulator_type: str) -> str:
