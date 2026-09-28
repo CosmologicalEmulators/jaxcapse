@@ -928,18 +928,19 @@
 <li><strong>TT</strong>: Temperature-Temperature</li>
 <li><strong>EE</strong>: E-mode polarization</li>
 <li><strong>TE</strong>: Temperature-E-mode cross-correlation</li>
+<li><strong>BB</strong>: B-mode polarization</li>
 <li><strong>PP</strong>: Lensing potential</li>
 </ul>
 <h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jaxcapse</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Load a trained emulator</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">emulator_TT</span> <span class="o">=</span> <span class="n">jaxcapse</span><span class="o">.</span><span class="n">load_emulator</span><span class="p">(</span><span class="s2">"trained_emu/TT/"</span><span class="p">)</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Access a bundled emulator (all five models are loaded on import)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">emulator_TT</span> <span class="o">=</span> <span class="n">jaxcapse</span><span class="o">.</span><span class="n">trained_emulators</span><span class="p">[</span><span class="s2">"camb_mnuw0wacdm"</span><span class="p">][</span><span class="s2">"TT"</span><span class="p">]</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Define cosmological parameters</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># [ln10As, ns, H0, ωb, ωc, τ]</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">params</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.1</span><span class="p">,</span> <span class="mf">0.96</span><span class="p">,</span> <span class="mf">67.0</span><span class="p">,</span> <span class="mf">0.022</span><span class="p">,</span> <span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.055</span><span class="p">])</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Parameter order: [ln10As, ns, tau, H0, omega_b, omega_c, Mnu, w0, wa]</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">params</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.044</span><span class="p">,</span> <span class="mf">0.965</span><span class="p">,</span> <span class="mf">0.054</span><span class="p">,</span> <span class="mf">67.4</span><span class="p">,</span> <span class="mf">0.02237</span><span class="p">,</span> <span class="mf">0.12</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># The training domain additionally requires w0 + wa &lt; -0.5.</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
 </span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Compute power spectrum</span>
 </span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">cl_TT</span> <span class="o">=</span> <span class="n">emulator_TT</span><span class="o">.</span><span class="n">get_Cl</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -966,7 +967,7 @@
 <li>Python ≥ 3.10</li>
 <li>JAX ≥ 0.4.30</li>
 <li>Flax ≥ 0.10.0</li>
-<li>jaxace ≥ 0.1.1</li>
+<li>jaxace ≥ 0.7.0</li>
 </ul>
 <h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
 <p>If you use jaxcapse in your research, please cite:</p>
